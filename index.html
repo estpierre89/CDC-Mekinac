@@ -1,0 +1,1441 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CDC Mékinac — Aperçu du système</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --forest:#24402F;
+    --forest-dark:#182B20;
+    --river:#3E6E80;
+    --wheat:#D4A94F;
+    --paper:#F5F1E4;
+    --paper-dim:#EBE5D2;
+    --ink:#201C14;
+    --clay:#B5502F;
+    --line:#D8D0B8;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Public Sans',sans-serif;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  ::selection{background:var(--wheat);color:var(--forest-dark);}
+
+  /* ---------- Header ---------- */
+  header{
+    position:relative;
+    overflow:hidden;
+    padding:28px 20px 20px;
+    background:var(--paper);
+  }
+  .stitch-divider{
+    height:5px;
+    border-top:1.5px dashed var(--clay);
+    border-bottom:1.5px dashed var(--clay);
+    opacity:.32;
+  }
+
+  /* ---------- Narrative strip ---------- */
+  .narrative-strip{
+    padding:22px 20px 6px;
+    text-align:center;
+    opacity:0;
+    animation:fadeUp .6s ease .5s forwards;
+  }
+  .narrative-flow{
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:12px;
+  }
+  .nf-pill{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:6px 12px;
+    border-radius:20px;
+    background:#fff;
+    border:1px solid var(--line);
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10.5px;
+    font-weight:500;
+    color:var(--forest-dark);
+  }
+  .nf-pill svg{width:13px;height:13px;flex-shrink:0;}
+  .nf-arrow{
+    color:var(--clay);
+    font-size:14px;
+    animation:arrowNudge 1.6s ease-in-out infinite;
+  }
+  @keyframes arrowNudge{0%,100%{transform:translateX(0);}50%{transform:translateX(3px);}}
+  .narrative-caption{
+    font-family:'Fraunces',serif;
+    font-style:italic;
+    font-size:14px;
+    color:#4A4536;
+    max-width:36ch;
+    margin:0 auto;
+    line-height:1.5;
+  }
+  .blob{
+    position:absolute;
+    border-radius:50%;
+    filter:blur(46px);
+    pointer-events:none;
+    will-change:transform;
+  }
+  .blob-a{width:240px;height:240px;background:var(--wheat);opacity:.28;top:-100px;right:-70px;}
+  .blob-b{width:180px;height:180px;background:var(--river);opacity:.22;bottom:-110px;left:-50px;}
+  .header-inner{position:relative;will-change:transform,opacity;}
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--river);
+    margin-bottom:8px;
+    opacity:0;
+    animation:fadeUp .6s ease forwards;
+    animation-delay:.05s;
+  }
+  h1{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:clamp(28px,7vw,40px);
+    color:var(--forest-dark);
+    letter-spacing:-0.01em;
+    max-width:14ch;
+    opacity:0;
+    animation:fadeUp .6s ease forwards;
+    animation-delay:.14s;
+  }
+  header p.sub{
+    margin-top:10px;
+    max-width:46ch;
+    color:#4A4536;
+    font-size:15px;
+    opacity:0;
+    animation:fadeUp .6s ease forwards;
+    animation-delay:.24s;
+  }
+
+  /* ---------- Hub diagram ---------- */
+  .hub-wrap{
+    position:relative;
+    padding:36px 20px 8px;
+    max-width:520px;
+    margin:0 auto;
+  }
+  .territory-silhouette{
+    position:absolute;
+    top:0;left:0;
+    opacity:0;
+    pointer-events:none;
+    z-index:0;
+    animation:territoryFade 1.4s ease .35s forwards;
+  }
+  .territory-silhouette svg{width:100%;height:100%;display:block;overflow:visible;}
+  .territory-silhouette .t-outline{fill:var(--forest);opacity:.055;}
+  .territory-silhouette .t-border{fill:none;stroke:var(--forest);stroke-width:1.2;opacity:.16;}
+  .territory-silhouette .t-muni{fill:none;stroke:var(--line);stroke-width:1;opacity:.55;}
+  .territory-silhouette .t-pin{fill:var(--clay);opacity:.55;}
+  .territory-silhouette .t-pin-ring{fill:none;stroke:var(--clay);stroke-width:1;opacity:.35;}
+  .territory-silhouette .t-label{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:8px;
+    letter-spacing:.04em;
+    fill:var(--ink);
+    opacity:.5;
+  }
+  @keyframes territoryFade{to{opacity:1;}}
+  .hub{
+    position:relative;
+    display:grid;
+    grid-template-columns:1fr auto 1fr;
+    grid-template-rows:auto auto auto;
+    align-items:center;
+    justify-items:center;
+    row-gap:30px;
+    column-gap:14px;
+    max-width:440px;
+    margin:0 auto 50px;
+  }
+  #hubSvg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible;}
+  .hub-line{
+    stroke:var(--line);
+    stroke-width:1.5;
+    transition:stroke .25s ease, stroke-width .25s ease, stroke-dashoffset .8s cubic-bezier(.22,.9,.32,1);
+  }
+  .hub-line.active{stroke:var(--clay);stroke-width:2;}
+
+  .flow-dot{
+    position:absolute;
+    top:0;left:0;
+    width:6px;height:6px;
+    margin:-3px 0 0 -3px;
+    border-radius:50%;
+    background:var(--clay);
+    opacity:0;
+    pointer-events:none;
+    z-index:2;
+    offset-rotate:0deg;
+    animation:flowMove 2.6s ease-in-out infinite;
+  }
+  .flow-dot[data-line="public"]{animation-delay:0s;}
+  .flow-dot[data-line="citoyen"]{animation-delay:.65s;}
+  .flow-dot[data-line="organismes"]{animation-delay:1.3s;}
+  .flow-dot[data-line="employe"]{animation-delay:1.95s;}
+  @keyframes flowMove{
+    0%{offset-distance:0%;opacity:0;}
+    10%{opacity:1;}
+    88%{opacity:1;}
+    100%{offset-distance:100%;opacity:0;}
+  }
+  @supports not (offset-path: path('M0 0 L1 1')){
+    .flow-dot{display:none;}
+  }
+
+  .center-node{
+    grid-column:2;grid-row:2;
+    width:112px;height:112px;
+    border-radius:50%;
+    background:var(--forest-dark);
+    color:var(--paper);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    box-shadow:0 8px 24px rgba(24,43,32,0.28);
+    animation:popIn .5s cubic-bezier(.2,.8,.2,1) backwards, breathe 5s ease-in-out infinite 1s;
+    position:relative;z-index:1;
+  }
+  .center-node .mark{
+    font-family:'Fraunces',serif;
+    font-weight:700;
+    font-size:22px;
+    line-height:1;
+  }
+  .center-node .tag{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:9px;
+    letter-spacing:.08em;
+    opacity:.75;
+    margin-top:4px;
+  }
+
+  .node{
+    position:relative;z-index:1;
+    width:100%;
+    max-width:128px;
+    padding:14px 10px;
+    border-radius:12px;
+    background:#fff;
+    border:1px solid var(--line);
+    text-align:center;
+    cursor:pointer;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:7px;
+    transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+  }
+  .node:hover{animation-play-state:paused;transform:translateY(-3px);box-shadow:0 10px 20px rgba(32,28,20,0.10);}
+  .node:active{animation-play-state:paused;transform:scale(.96);}
+  .node .n-icon{
+    display:block;
+    width:22px;height:22px;
+    flex-shrink:0;
+    color:var(--forest-dark);
+    transition:color .18s ease;
+  }
+  .node.active .n-icon,
+  .node:hover .n-icon{color:var(--clay);}
+  .node .n-label{
+    font-size:11.5px;
+    font-weight:600;
+    line-height:1.25;
+  }
+  .node[data-space="public"]{grid-column:1 / -1;grid-row:1;animation:popIn .5s cubic-bezier(.2,.8,.2,1) .1s backwards, floatY 4.6s ease-in-out 1.2s infinite;}
+  .node[data-space="employe"]{grid-column:1;grid-row:2;animation:popIn .5s cubic-bezier(.2,.8,.2,1) .4s backwards, floatY 5.5s ease-in-out 2.1s infinite;}
+  .node[data-space="citoyen"]{grid-column:3;grid-row:2;animation:popIn .5s cubic-bezier(.2,.8,.2,1) .2s backwards, floatY 5.2s ease-in-out 1.5s infinite;}
+  .node[data-space="organismes"]{grid-column:1 / -1;grid-row:3;animation:popIn .5s cubic-bezier(.2,.8,.2,1) .3s backwards, floatY 4.9s ease-in-out 1.8s infinite;}
+
+  .node.active{
+    border-color:var(--clay);
+    box-shadow:0 6px 18px rgba(181,80,47,0.22);
+  }
+  .node[data-space="public"].active,
+  .node[data-space="public"]:hover{ }
+  .node.active .n-label{color:var(--clay);}
+
+  .hub-hint{
+    text-align:center;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    color:#8A836C;
+    margin-top:18px;
+    letter-spacing:.02em;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:7px;
+  }
+  .demo-dot{
+    width:7px;height:7px;
+    border-radius:50%;
+    background:var(--clay);
+    flex-shrink:0;
+    animation:demoPulse 1.4s ease-in-out infinite;
+  }
+  @keyframes demoPulse{
+    0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(181,80,47,0.4);}
+    50%{opacity:.6;box-shadow:0 0 0 5px rgba(181,80,47,0);}
+  }
+
+  /* ---------- Preview panel ---------- */
+  .panel-wrap{
+    padding:24px 20px 60px;
+    max-width:480px;
+    margin:0 auto;
+  }
+  .panel-head{
+    margin-bottom:14px;
+  }
+  .panel-head .badge{
+    display:inline-block;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10.5px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    padding:4px 9px;
+    border-radius:20px;
+    color:#fff;
+    margin-bottom:10px;
+  }
+  .panel-head h2{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:22px;
+    color:var(--forest-dark);
+    margin-bottom:6px;
+  }
+  .panel-head p{
+    font-size:13.5px;
+    color:#4A4536;
+    max-width:42ch;
+  }
+
+  .frame{
+    border-radius:20px;
+    border:1px solid var(--line);
+    background:#fff;
+    overflow:hidden;
+    box-shadow:0 16px 40px rgba(32,28,20,0.10);
+  }
+  .frame-bar{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    padding:10px 14px;
+    background:var(--paper-dim);
+    border-bottom:1px solid var(--line);
+  }
+  .frame-bar .dot{width:7px;height:7px;border-radius:50%;background:#D8D0B8;}
+  .frame-bar .url{
+    margin-left:8px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10.5px;
+    color:#8A836C;
+  }
+  .frame-body{padding:0;}
+
+  /* generic app-bar inside mockups */
+  .app-bar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:14px 16px;
+    color:#fff;
+  }
+  .app-bar .app-title{font-family:'Fraunces',serif;font-weight:600;font-size:15px;}
+  .app-bar .app-sub{font-family:'IBM Plex Mono',monospace;font-size:9.5px;opacity:.8;}
+  .avatar{width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,0.22);display:flex;align-items:center;justify-content:center;font-size:12px;}
+
+  .content{padding:16px;display:flex;flex-direction:column;gap:12px;}
+  .content > *{opacity:0;animation:fadeUp .45s cubic-bezier(.22,.9,.32,1) forwards;}
+  .content > *:nth-child(1){animation-delay:.05s;}
+  .content > *:nth-child(2){animation-delay:.15s;}
+  .content > *:nth-child(3){animation-delay:.25s;}
+  .content > *:nth-child(4){animation-delay:.35s;}
+  .card{
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:13px 14px;
+    transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+  }
+  .card.demo-link{cursor:pointer;}
+  .card.demo-link:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(32,28,20,0.08);border-color:var(--clay);}
+  .card.demo-link:active{transform:translateY(0) scale(.985);}
+  .card h3{font-size:13.5px;font-weight:600;margin-bottom:4px;color:var(--forest-dark);}
+  .card p{font-size:12px;color:#5A5544;}
+  .row{display:flex;justify-content:space-between;align-items:center;gap:10px;}
+  .tag-pill{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:9.5px;
+    letter-spacing:.03em;
+    padding:3px 8px;
+    border-radius:20px;
+    white-space:nowrap;
+  }
+  .list-item{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:9px 0;
+    border-bottom:1px solid var(--line);
+    font-size:12.5px;
+  }
+  .list-item:last-child{border-bottom:none;}
+  .btn{
+    display:inline-block;
+    text-align:center;
+    padding:9px 14px;
+    border-radius:9px;
+    font-size:12.5px;
+    font-weight:600;
+    color:#fff;
+    cursor:pointer;
+    transition:transform .16s ease, box-shadow .16s ease, opacity .16s ease;
+  }
+  .btn:hover{box-shadow:0 6px 14px rgba(32,28,20,0.14);}
+  .btn:active{transform:scale(.96);}
+  .btn-ghost{
+    background:transparent;
+    border:1px solid var(--line);
+    color:var(--forest-dark);
+  }
+  .inline-link{
+    color:var(--forest-dark);
+    text-decoration:underline dotted;
+    text-underline-offset:3px;
+    cursor:pointer;
+  }
+  .inline-link:hover{color:var(--clay);}
+  .progress{
+    height:6px;
+    background:var(--paper-dim);
+    border-radius:6px;
+    overflow:hidden;
+    margin-top:6px;
+  }
+  .progress-fill{height:100%;border-radius:6px;transition:width 1s cubic-bezier(.22,.9,.32,1);}
+  .nav-tabs{
+    display:flex;
+    border-top:1px solid var(--line);
+    background:#fff;
+  }
+  .nav-tabs .tab{
+    flex:1;
+    text-align:center;
+    padding:10px 4px 12px;
+    font-size:10px;
+    font-family:'IBM Plex Mono',monospace;
+    color:#8A836C;
+    cursor:pointer;
+    transition:color .18s ease;
+  }
+  .nav-tabs .tab:hover{color:var(--forest-dark);}
+  .nav-tabs .tab.on{color:var(--forest-dark);font-weight:600;}
+
+  .notes{
+    margin-top:16px;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .notes .note{
+    font-size:12.5px;
+    color:#4A4536;
+    padding-left:16px;
+    position:relative;
+  }
+  .notes .note::before{
+    content:"—";
+    position:absolute;
+    left:0;
+    color:var(--clay);
+  }
+
+  /* ---------- Next steps timeline ---------- */
+  .next-steps{
+    padding:44px 20px 8px;
+    max-width:480px;
+    margin:0 auto;
+  }
+  .ns-eyebrow{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--river);
+    margin-bottom:8px;
+  }
+  .next-steps h2{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:22px;
+    color:var(--forest-dark);
+    margin-bottom:8px;
+  }
+  .next-steps .ns-sub{
+    font-size:13.5px;
+    color:#4A4536;
+    max-width:40ch;
+  }
+  .timeline{
+    margin-top:26px;
+    position:relative;
+    padding-left:26px;
+  }
+  .timeline::before{
+    content:'';
+    position:absolute;
+    left:4px;top:6px;bottom:6px;
+    width:2px;
+    background:var(--line);
+  }
+  .ts-step{
+    position:relative;
+    padding-bottom:28px;
+    opacity:0;
+    transform:translateX(-10px);
+    transition:opacity .5s ease, transform .5s ease;
+  }
+  .ts-step.in{opacity:1;transform:translateX(0);}
+  .ts-step:nth-child(1){transition-delay:.05s;}
+  .ts-step:nth-child(2){transition-delay:.16s;}
+  .ts-step:nth-child(3){transition-delay:.27s;}
+  .ts-step:nth-child(4){transition-delay:.38s;padding-bottom:0;}
+  .ts-step::before{
+    content:'';
+    position:absolute;
+    left:-26px;top:3px;
+    width:10px;height:10px;
+    border-radius:50%;
+    background:var(--paper);
+    border:2px solid var(--clay);
+  }
+  .ts-step .ts-when{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:9.5px;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    color:#8A836C;
+    display:block;
+    margin-bottom:4px;
+  }
+  .ts-step h4{
+    font-size:13.5px;
+    font-weight:600;
+    color:var(--forest-dark);
+    margin-bottom:4px;
+  }
+  .ts-step p{font-size:12.5px;color:#5A5544;}
+
+  /* ---------- Desktop / widescreen layout ---------- */
+  @media (min-width:980px){
+    .header-inner{max-width:640px;}
+    header p.sub{max-width:56ch;}
+
+    .workspace{
+      display:grid;
+      grid-template-columns:minmax(340px,440px) 1fr;
+      grid-template-rows:auto 1fr;
+      column-gap:56px;
+      max-width:1180px;
+      margin:0 auto;
+      padding:0 32px;
+      align-items:start;
+    }
+    .narrative-strip{
+      grid-column:1;grid-row:1;
+      padding:36px 0 0;
+    }
+    .hub-wrap{
+      grid-column:1;grid-row:2;
+      position:sticky;
+      top:88px;
+      padding:20px 0 40px;
+    }
+    .panel-wrap{
+      grid-column:2;grid-row:1 / span 2;
+      max-width:560px;
+      margin:0;
+      padding:36px 0 60px;
+    }
+
+    .next-steps{max-width:820px;padding:64px 32px 20px;}
+    .timeline{
+      margin-top:34px;
+      padding-left:0;
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:0 24px;
+    }
+    .timeline::before{
+      left:0;right:0;top:5px;bottom:auto;
+      width:auto;height:2px;
+    }
+    .ts-step{padding-bottom:0;padding-top:26px;}
+    .ts-step::before{left:0;top:-1px;}
+    .ts-step:nth-child(4){padding-bottom:0;}
+  }
+
+  footer{
+    text-align:center;
+    padding:24px 20px 40px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10.5px;
+    color:#8A836C;
+  }
+
+  .space-panel{display:none;}
+  .space-panel.on{display:block;animation:fadein .3s ease;}
+  @keyframes fadein{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+  @keyframes popIn{from{opacity:0;transform:scale(.75);}to{opacity:1;transform:scale(1);}}
+  @keyframes floatY{0%,100%{transform:translateY(0);}50%{transform:translateY(-6px);}}
+  @keyframes breathe{0%,100%{transform:scale(1);}50%{transform:scale(1.035);}}
+  @keyframes drawLine{to{stroke-dashoffset:0;}}
+
+  /* ---------- Scroll progress bar ---------- */
+  .scroll-progress{
+    position:fixed;top:0;left:0;height:3px;
+    background:linear-gradient(90deg, var(--river), var(--wheat), var(--clay));
+    width:0%;
+    z-index:90;
+    transition:width .1s linear;
+  }
+
+  /* ---------- Sticky quick-nav ---------- */
+  .quick-nav{
+    position:fixed;
+    top:0;left:50%;
+    transform:translate(-50%,-120%);
+    display:flex;
+    gap:6px;
+    background:rgba(245,241,228,0.9);
+    backdrop-filter:blur(10px);
+    border:1px solid var(--line);
+    border-radius:0 0 16px 16px;
+    padding:8px 8px;
+    box-shadow:0 8px 20px rgba(32,28,20,0.08);
+    z-index:80;
+    transition:transform .35s cubic-bezier(.22,.9,.32,1);
+  }
+  .quick-nav.show{transform:translate(-50%,3px);}
+  .quick-nav button{
+    border:none;
+    background:transparent;
+    border-radius:10px;
+    padding:8px 11px;
+    cursor:pointer;
+    color:var(--forest-dark);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    transition:background .15s ease, transform .15s ease, color .15s ease;
+  }
+  .quick-nav button:hover{background:var(--paper-dim);transform:translateY(-1px);}
+  .quick-nav button.on{background:var(--forest-dark);color:var(--paper);}
+  .q-icon{width:18px;height:18px;}
+
+  /* ---------- Full-page overlay (visual navigation) ---------- */
+  .page-overlay{
+    position:fixed;inset:0;
+    background:rgba(24,20,14,0.38);
+    backdrop-filter:blur(2px);
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .3s ease;
+    z-index:75;
+  }
+  .page-overlay.open{opacity:1;pointer-events:auto;}
+  .page-screen{
+    position:absolute;top:0;right:0;
+    width:100%;max-width:480px;
+    height:100%;
+    background:var(--paper);
+    transform:translateX(100%);
+    transition:transform .4s cubic-bezier(.22,.9,.32,1);
+    box-shadow:-14px 0 40px rgba(0,0,0,0.16);
+    display:flex;
+    flex-direction:column;
+    overflow-y:auto;
+  }
+  .page-overlay.open .page-screen{transform:translateX(0);}
+  .page-topbar{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:16px 18px;
+    border-bottom:1px solid var(--line);
+    background:#fff;
+    position:sticky;top:0;z-index:2;
+  }
+  .page-back{
+    background:none;border:none;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;color:var(--forest-dark);
+    cursor:pointer;padding:6px 9px;
+    border-radius:8px;
+    transition:background .15s ease, transform .15s ease;
+  }
+  .page-back:hover{background:var(--paper-dim);}
+  .page-back:active{transform:scale(.94);}
+  .page-topbar-label{
+    font-size:10.5px;
+    font-family:'IBM Plex Mono',monospace;
+    color:#8A836C;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+  }
+  .page-body{flex:1;}
+  .page-hero{
+    padding:26px 20px 18px;
+    text-align:center;
+  }
+  .page-hero .p-icon{font-size:34px;margin-bottom:10px;display:block;animation:popIn .4s cubic-bezier(.2,.8,.2,1) backwards;}
+  .page-hero h3{font-family:'Fraunces',serif;font-weight:600;font-size:19px;color:var(--forest-dark);margin-bottom:8px;}
+  .page-hero p{font-size:13px;color:#5A5544;max-width:38ch;margin:0 auto;}
+  .page-hero .p-note{
+    margin-top:16px;
+    display:inline-block;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10.5px;
+    color:var(--clay);
+    border:1px dashed var(--clay);
+    border-radius:20px;
+    padding:5px 12px;
+  }
+
+  /* card 3D tilt (pointer devices only) */
+  @media (hover:hover) and (pointer:fine){
+    .card{transform-style:preserve-3d;}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none !important;transition:none !important;}
+    html{scroll-behavior:auto;}
+    .content > *, .eyebrow, h1, header p.sub, .hub-line{opacity:1 !important;stroke-dashoffset:0 !important;}
+  }
+</style>
+</head>
+<body>
+
+<svg style="position:absolute;width:0;height:0;overflow:hidden;" aria-hidden="true">
+  <defs>
+    <symbol id="icon-public" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.6"/>
+      <ellipse cx="12" cy="12" rx="4" ry="9" fill="none" stroke="currentColor" stroke-width="1.6"/>
+      <line x1="3" y1="12" x2="21" y2="12" stroke="currentColor" stroke-width="1.6"/>
+    </symbol>
+    <symbol id="icon-citoyen" viewBox="0 0 24 24">
+      <path d="M12 3l7 3v6c0 5-3.5 8-7 9-3.5-1-7-4-7-9V6l7-3z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+      <path d="M9 12l2 2 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="icon-organismes" viewBox="0 0 24 24">
+      <path d="M4 21V9.5L9 6v15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+      <path d="M9 21V4l6 4.5V21" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+      <path d="M15 21V10l5 3.5V21" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+      <line x1="3" y1="21" x2="21" y2="21" stroke="currentColor" stroke-width="1.6"/>
+    </symbol>
+    <symbol id="icon-employe" viewBox="0 0 24 24">
+      <path d="M3 7.5A1.5 1.5 0 0 1 4.5 6h4l2 2h9A1.5 1.5 0 0 1 21 9.5v8A1.5 1.5 0 0 1 19.5 19h-15A1.5 1.5 0 0 1 3 17.5v-10z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+    </symbol>
+  </defs>
+</svg>
+
+<div class="scroll-progress" id="scrollProgress"></div>
+<div class="quick-nav" id="quickNav">
+  <button data-space="public" title="Portail public"><svg class="q-icon"><use href="#icon-public"/></svg></button>
+  <button data-space="citoyen" title="Citoyen &amp; Brigade"><svg class="q-icon"><use href="#icon-citoyen"/></svg></button>
+  <button data-space="organismes" title="Organismes membres"><svg class="q-icon"><use href="#icon-organismes"/></svg></button>
+  <button data-space="employe" title="Employé CDC"><svg class="q-icon"><use href="#icon-employe"/></svg></button>
+</div>
+
+<header>
+  <div class="blob blob-a" id="blobA"></div>
+  <div class="blob blob-b" id="blobB"></div>
+  <div class="header-inner" id="headerInner">
+    <div class="eyebrow">Système interne · Maquette de travail</div>
+    <h1>Quatre espaces, un territoire</h1>
+    <p class="sub">Aperçu de la structure proposée pour le site web et l'application de la CDC Mékinac. Touche un point du schéma pour voir l'espace correspondant.</p>
+  </div>
+</header>
+<div class="stitch-divider" aria-hidden="true"></div>
+
+<div class="workspace">
+<div class="narrative-strip">
+  <div class="narrative-flow">
+    <span class="nf-pill"><svg><use href="#icon-citoyen"/></svg>Citoyen</span>
+    <span class="nf-arrow">→</span>
+    <span class="nf-pill"><svg><use href="#icon-employe"/></svg>Employé</span>
+  </div>
+  <p class="narrative-caption">Une sentinelle voit quelque chose au Festival Western — le rapport arrive chez l'équipe de la CDC en quelques secondes.</p>
+</div>
+
+<div class="hub-wrap">
+  <div class="territory-silhouette" id="territorySilhouette" aria-hidden="true">
+    <svg viewBox="0 0 650 460" preserveAspectRatio="xMidYMid meet">
+      <path class="t-outline" d="M60,175 L85,163 L128,172 L135,182 L350,270 L378,258 L392,273 L405,268 L420,290 L468,270 L495,282 L518,268 L540,280 L590,305 L583,335 L560,345 L535,360 L508,352 L495,372 L468,385 L448,398 L428,392 L415,368 L402,340 L395,335 L352,350 L310,335 L280,350 L245,340 L208,350 L168,344 L148,344 L155,354 L140,362 L78,305 L63,250 Z"/>
+      <path class="t-border" d="M60,175 L85,163 L128,172 L135,182 L350,270 L378,258 L392,273 L405,268 L420,290 L468,270 L495,282 L518,268 L540,280 L590,305 L583,335 L560,345 L535,360 L508,352 L495,372 L468,385 L448,398 L428,392 L415,368 L402,340 L395,335 L352,350 L310,335 L280,350 L245,340 L208,350 L168,344 L148,344 L155,354 L140,362 L78,305 L63,250 Z"/>
+      <line class="t-muni" x1="135" y1="182" x2="395" y2="335"/>
+      <line class="t-muni" x1="420" y1="290" x2="495" y2="282"/>
+      <line class="t-muni" x1="495" y1="282" x2="540" y2="280"/>
+      <line class="t-muni" x1="468" y1="385" x2="495" y2="372"/>
+      <line class="t-muni" x1="448" y1="398" x2="468" y2="385"/>
+      <circle class="t-pin-ring" cx="448" cy="392" r="7"/>
+      <circle class="t-pin" cx="448" cy="392" r="3"/>
+      <text class="t-label" x="458" y="396">SAINT-TITE</text>
+      <circle class="t-pin-ring" cx="410" cy="305" r="5.5"/>
+      <circle class="t-pin" cx="410" cy="305" r="2.3"/>
+      <text class="t-label" x="418" y="309">SAINTE-THÈCLE</text>
+    </svg>
+  </div>
+  <div class="hub" id="hub">
+    <svg id="hubSvg" preserveAspectRatio="none">
+      <line class="hub-line" data-line="public"></line>
+      <line class="hub-line" data-line="citoyen"></line>
+      <line class="hub-line" data-line="organismes"></line>
+      <line class="hub-line" data-line="employe"></line>
+    </svg>
+    <div class="flow-dot" data-line="public" aria-hidden="true"></div>
+    <div class="flow-dot" data-line="citoyen" aria-hidden="true"></div>
+    <div class="flow-dot" data-line="organismes" aria-hidden="true"></div>
+    <div class="flow-dot" data-line="employe" aria-hidden="true"></div>
+    <div class="center-node">
+      <div class="mark">CDC</div>
+      <div class="tag">MÉKINAC</div>
+    </div>
+    <div class="node" data-space="public"><svg class="n-icon"><use href="#icon-public"/></svg><span class="n-label">Portail public</span></div>
+    <div class="node" data-space="citoyen"><svg class="n-icon"><use href="#icon-citoyen"/></svg><span class="n-label">Citoyen &amp; Brigade</span></div>
+    <div class="node" data-space="organismes"><svg class="n-icon"><use href="#icon-organismes"/></svg><span class="n-label">Organismes membres</span></div>
+    <div class="node" data-space="employe"><svg class="n-icon"><use href="#icon-employe"/></svg><span class="n-label">Employé CDC</span></div>
+  </div>
+  <div class="hub-hint" id="hubHint">▲ touche un espace pour l'ouvrir ▼</div>
+</div>
+
+<div class="panel-wrap">
+
+  <!-- PUBLIC -->
+  <div class="space-panel on" data-panel="public">
+    <div class="panel-head">
+      <span class="badge" style="background:var(--river)">Accès libre</span>
+      <h2>Portail public</h2>
+      <p>Vitrine de la CDC : annuaire des 20 organismes membres, calendrier du territoire, actualités. Aucun compte requis.</p>
+    </div>
+    <div class="frame">
+      <div class="frame-bar"><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="url">cdcmekinac.org</div></div>
+      <div class="frame-body">
+        <div class="app-bar" style="background:var(--forest-dark);">
+          <div><div class="app-title">CDC Mékinac</div><div class="app-sub">Accueil · Organismes · Événements</div></div>
+          <div class="avatar">☰</div>
+        </div>
+        <div class="content">
+          <div class="card">
+            <div class="row"><h3>Festival Western de Saint-Tite</h3><span class="tag-pill" style="background:var(--clay);color:#fff;">Brigade active</span></div>
+            <p>La Brigade citoyenne est déployée durant l'événement. En savoir plus sur comment devenir sentinelle.</p>
+          </div>
+          <div class="card">
+            <h3>Calendrier du territoire</h3>
+            <div class="list-item"><span>Rentrée scolaire accessible</span><span style="color:#8A836C;">24 août</span></div>
+            <div class="list-item"><span>Semaine de Mékinac</span><span style="color:#8A836C;">Mai</span></div>
+            <div class="list-item"><span>Festival Western Saint-Tite</span><span style="color:#8A836C;">Septembre</span></div>
+          </div>
+          <div class="card">
+            <h3>Annuaire des membres</h3>
+            <p>Maison des familles de Mékinac · Centre d'action bénévole · Carrefour Normandie · +17 autres</p>
+          </div>
+          <span class="btn-ghost btn" data-demo="pub-connexion">Se connecter →</span>
+        </div>
+        <div class="nav-tabs">
+          <div class="tab on">Accueil</div><div class="tab" data-demo="pub-membres">Membres</div><div class="tab" data-demo="pub-evenements">Événements</div><div class="tab" data-demo="pub-contact">Contact</div>
+        </div>
+      </div>
+    </div>
+    <div class="notes">
+      <div class="note">Le bouton « Se connecter » redirige vers l'espace citoyen, organisme ou employé selon le type de compte.</div>
+      <div class="note">Le calendrier peut afficher un filtre « Brigade citoyenne » quand un événement l'utilise.</div>
+    </div>
+  </div>
+
+  <!-- CITOYEN / BRIGADE -->
+  <div class="space-panel" data-panel="citoyen">
+    <div class="panel-head">
+      <span class="badge" style="background:var(--clay)">Compte citoyen · auto-créé</span>
+      <h2>Espace citoyen &amp; Brigade</h2>
+      <p>Formations obligatoires, questionnaire quotidien pendant les événements, dépôt d'observations. Compte créé librement par tout citoyen.</p>
+    </div>
+    <div class="frame">
+      <div class="frame-bar"><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="url">app · espace citoyen</div></div>
+      <div class="frame-body">
+        <div class="app-bar" style="background:var(--clay);">
+          <div><div class="app-title">Bonjour, Maude</div><div class="app-sub">Brigade citoyenne · Saint-Tite 2026</div></div>
+          <div class="avatar">MB</div>
+        </div>
+        <div class="content">
+          <div class="card">
+            <div class="row"><h3>Formation obligatoire</h3><span class="tag-pill" style="background:var(--forest);color:#fff;">Complétée ✓</span></div>
+            <p>Comment intervenir si on est témoin ?</p>
+            <div class="progress"><div class="progress-fill" style="width:100%;background:var(--forest);"></div></div>
+          </div>
+          <div class="card">
+            <h3>Rappel du jour</h3>
+            <p>Aujourd'hui, as-tu vu quelque chose durant ta ronde ?</p>
+            <div class="row" style="margin-top:8px;gap:8px;">
+              <span class="btn" style="background:var(--forest);flex:1;" data-demo="cit-oui">Oui</span>
+              <span class="btn-ghost btn" style="flex:1;" data-demo="cit-non">Non</span>
+            </div>
+          </div>
+          <div class="card demo-link" data-demo="cit-babillard">
+            <h3>Babillard brigade</h3>
+            <p style="color:#B5502F;">🔒 Réservé aux intervenants — visible après validation de ton rôle.</p>
+          </div>
+        </div>
+        <div class="nav-tabs">
+          <div class="tab on">Aujourd'hui</div><div class="tab" data-demo="cit-formations">Formations</div><div class="tab" data-demo="cit-babillard">Babillard</div><div class="tab" data-demo="cit-profil">Profil</div>
+        </div>
+      </div>
+    </div>
+    <div class="notes">
+      <div class="note">Le questionnaire quotidien peut être poussé par courriel automatique durant les jours d'événement.</div>
+      <div class="note">Le babillard de la brigade reste invisible tant que le rôle « intervenant » n'est pas confirmé par un employé.</div>
+    </div>
+  </div>
+
+  <!-- ORGANISMES -->
+  <div class="space-panel" data-panel="organismes">
+    <div class="panel-head">
+      <span class="badge" style="background:var(--wheat);color:var(--forest-dark);">Compte organisme</span>
+      <h2>Espace organismes membres</h2>
+      <p>Zone dédiée aux ~20 organismes communautaires du territoire : formations offertes par la CDC, ressources partagées, demandes de soutien.</p>
+    </div>
+    <div class="frame">
+      <div class="frame-bar"><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="url">app · espace organismes</div></div>
+      <div class="frame-body">
+        <div class="app-bar" style="background:var(--wheat);color:var(--forest-dark);">
+          <div><div class="app-title" style="color:var(--forest-dark);">Centre d'action bénévole</div><div class="app-sub" style="color:var(--forest-dark);">Organisme membre</div></div>
+          <div class="avatar" style="background:rgba(36,64,47,0.15);color:var(--forest-dark);">CA</div>
+        </div>
+        <div class="content">
+          <div class="card">
+            <h3>Zone formation</h3>
+            <div class="list-item"><span>Gouvernance associative</span><span style="color:#8A836C;">3 modules</span></div>
+            <div class="list-item"><span>Rédaction de demandes SACAIS</span><span style="color:#8A836C;">2 modules</span></div>
+          </div>
+          <div class="card">
+            <h3>Demande de soutien</h3>
+            <p>Faire une demande de partenariat, de local ou d'accompagnement auprès de la CDC.</p>
+            <span class="btn" style="background:var(--forest-dark);margin-top:8px;display:inline-block;" data-demo="org-nouvelle-demande">Nouvelle demande</span>
+          </div>
+          <div class="card">
+            <h3>Ressources partagées</h3>
+            <p>Modèles de documents, portrait socioéconomique, guides Loi 25.</p>
+          </div>
+        </div>
+        <div class="nav-tabs">
+          <div class="tab on">Accueil</div><div class="tab" data-demo="org-formations">Formations</div><div class="tab" data-demo="org-demandes">Demandes</div><div class="tab" data-demo="org-ressources">Ressources</div>
+        </div>
+      </div>
+    </div>
+    <div class="notes">
+      <div class="note">Distincte de la zone formation « Brigade citoyenne », propre aux citoyens.</div>
+      <div class="note">Comptes créés par la CDC lors de l'adhésion d'un organisme.</div>
+    </div>
+  </div>
+
+  <!-- EMPLOYÉ -->
+  <div class="space-panel" data-panel="employe">
+    <div class="panel-head">
+      <span class="badge" style="background:var(--forest-dark)">Compte employé · créé par admin</span>
+      <h2>Espace employé</h2>
+      <p>Back-office de l'équipe CDC : rapports d'intervention des sentinelles, gestion des comptes, babillard interne, suivi des formations citoyennes.</p>
+    </div>
+    <div class="frame">
+      <div class="frame-bar"><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="url">app · espace employé</div></div>
+      <div class="frame-body">
+        <div class="app-bar" style="background:var(--forest-dark);">
+          <div><div class="app-title">Tableau de bord</div><div class="app-sub">Josée B. · Agente de développement</div></div>
+          <div class="avatar">JB</div>
+        </div>
+        <div class="content">
+          <div class="card">
+            <div class="row"><h3>Rapports d'intervention — aujourd'hui</h3><span class="tag-pill" style="background:var(--clay);color:#fff;">4 nouveaux</span></div>
+            <div class="list-item"><span>Sentinelle T. — Rue Notre-Dame</span><span style="color:#8A836C;">14 h 32</span></div>
+            <div class="list-item"><span>Sentinelle L. — Site principal</span><span style="color:#8A836C;">13 h 05</span></div>
+          </div>
+          <div class="card">
+            <h3>Suivi des formations citoyennes</h3>
+            <p id="trainingLabel">87 % des membres de la brigade ont complété la formation obligatoire.</p>
+            <div class="progress"><div class="progress-fill" id="trainingFill" style="width:87%;background:var(--wheat);"></div></div>
+          </div>
+          <div class="card">
+            <h3>Gestion des comptes</h3>
+            <p><span class="inline-link" data-demo="emp-creer-compte">Créer un compte employé</span> · <span class="inline-link" data-demo="emp-valider-role">Valider un rôle « intervenant »</span></p>
+          </div>
+        </div>
+        <div class="nav-tabs">
+          <div class="tab on">Tableau de bord</div><div class="tab" data-demo="emp-comptes">Comptes</div><div class="tab" data-demo="emp-babillard">Babillard</div><div class="tab" data-demo="emp-rapports">Rapports</div>
+        </div>
+      </div>
+    </div>
+    <div class="notes">
+      <div class="note">Seul cet espace peut créer des comptes employés et valider les rôles d'intervenants.</div>
+      <div class="note">Les rapports d'intervention peuvent être filtrés par événement, zone ou sentinelle.</div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<div class="next-steps">
+  <div class="ns-eyebrow">Et ensuite ?</div>
+  <h2>Prochaines étapes</h2>
+  <p class="ns-sub">Ce qu'on pourrait faire ensemble après la rencontre, pour passer du concept au vrai projet.</p>
+  <div class="timeline">
+    <div class="ts-step">
+      <span class="ts-when">Étape 1</span>
+      <h4>Cadrage &amp; priorités</h4>
+      <p>Confirmer ensemble les 4 espaces, les rôles, et ce qui doit être prêt avant le Festival Western.</p>
+    </div>
+    <div class="ts-step">
+      <span class="ts-when">Étape 2</span>
+      <h4>Maquettes détaillées — Brigade citoyenne</h4>
+      <p>Écrans complets pour les formations, le questionnaire quotidien et les rapports d'intervention.</p>
+    </div>
+    <div class="ts-step">
+      <span class="ts-when">Étape 3</span>
+      <h4>Choix technique</h4>
+      <p>Architecture web et mobile, gestion des comptes et des rôles, hébergement.</p>
+    </div>
+    <div class="ts-step">
+      <span class="ts-when">Étape 4</span>
+      <h4>Développement itératif</h4>
+      <p>Un espace à la fois, en commençant par le plus urgent avant septembre.</p>
+    </div>
+  </div>
+</div>
+
+<div class="page-overlay" id="pageOverlay">
+  <div class="page-screen" id="pageScreen">
+    <div class="page-topbar">
+      <button class="page-back" id="pageBack">← Retour</button>
+      <span class="page-topbar-label" id="pageLabel">Aperçu</span>
+    </div>
+    <div class="page-body" id="pageBody"></div>
+  </div>
+</div>
+
+<div class="stitch-divider" aria-hidden="true"></div>
+<footer>Maquette de travail — CDC Mékinac · à discuter en rencontre</footer>
+
+<script>
+  const nodes = document.querySelectorAll('.node');
+  const lines = document.querySelectorAll('.hub-line');
+  const panels = document.querySelectorAll('.space-panel');
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function activate(space){
+    nodes.forEach(n => n.classList.toggle('active', n.dataset.space === space));
+    lines.forEach(l => l.classList.toggle('active', l.dataset.line === space));
+    panels.forEach(p => p.classList.toggle('on', p.dataset.panel === space));
+    quickNavBtns.forEach(b => b.classList.toggle('on', b.dataset.space === space));
+    triggerStatCount(space);
+  }
+
+  nodes.forEach(n => {
+    n.addEventListener('click', () => {
+      stopDemo();
+      activate(n.dataset.space);
+      if(window.innerWidth < 980) document.querySelector('.panel-wrap').scrollIntoView({behavior:'smooth', block:'start'});
+    });
+  });
+
+  /* ---------- Hub connector lines: measured from real layout, not guessed percentages ---------- */
+  const hubBox = document.getElementById('hub');
+  const centerNode = document.querySelector('.center-node');
+
+  function positionHubLines(animate){
+    const hubRect = hubBox.getBoundingClientRect();
+    const cRect = centerNode.getBoundingClientRect();
+    const cx = cRect.left + cRect.width / 2 - hubRect.left;
+    const cy = cRect.top + cRect.height / 2 - hubRect.top;
+    nodes.forEach((node, i) => {
+      const line = document.querySelector(`.hub-line[data-line="${node.dataset.space}"]`);
+      if(!line) return;
+      const r = node.getBoundingClientRect();
+      const nx = r.left + r.width / 2 - hubRect.left;
+      const ny = r.top + r.height / 2 - hubRect.top;
+      const len = Math.hypot(nx - cx, ny - cy);
+      if(animate && !reducedMotion){
+        line.style.transition = 'none';
+        line.setAttribute('x1', cx); line.setAttribute('y1', cy);
+        line.setAttribute('x2', nx); line.setAttribute('y2', ny);
+        line.style.strokeDasharray = len;
+        line.style.strokeDashoffset = len;
+        line.getBoundingClientRect(); // force reflow before re-enabling transition
+        line.style.transition = '';
+        setTimeout(() => { line.style.strokeDashoffset = 0; }, 250 + i * 110);
+      } else {
+        line.setAttribute('x1', cx); line.setAttribute('y1', cy);
+        line.setAttribute('x2', nx); line.setAttribute('y2', ny);
+        line.style.strokeDasharray = len;
+        line.style.strokeDashoffset = 0;
+      }
+      const dot = document.querySelector(`.flow-dot[data-line="${node.dataset.space}"]`);
+      if(dot) dot.style.offsetPath = `path('M${cx},${cy} L${nx},${ny}')`;
+    });
+  }
+
+  /* ---------- Territory watermark: sized & centered against the real hub, not guessed ---------- */
+  const territoryEl = document.getElementById('territorySilhouette');
+  const hubWrapEl = document.querySelector('.hub-wrap');
+
+  function positionTerritory(){
+    if(!territoryEl || !hubWrapEl) return;
+    const wrapRect = hubWrapEl.getBoundingClientRect();
+    const hubRect = hubBox.getBoundingClientRect();
+    const cx = hubRect.left + hubRect.width / 2 - wrapRect.left;
+    const cy = hubRect.top + hubRect.height / 2 - wrapRect.top;
+    const shapeW = 650, shapeH = 460;
+    const scale = Math.max((hubRect.width * 1.55) / shapeW, (hubRect.height * 1.85) / shapeH);
+    territoryEl.style.width = (scale * shapeW) + 'px';
+    territoryEl.style.height = (scale * shapeH) + 'px';
+    territoryEl.style.left = cx + 'px';
+    territoryEl.style.top = cy + 'px';
+    territoryEl.style.transform = 'translate(-50%,-50%)';
+  }
+
+  positionTerritory();
+  window.addEventListener('resize', () => {
+    clearTimeout(window.__territoryResizeT);
+    window.__territoryResizeT = setTimeout(positionTerritory, 120);
+  });
+  if(document.fonts && document.fonts.ready){
+    document.fonts.ready.then(positionTerritory);
+  }
+
+  positionHubLines(true);
+  window.addEventListener('resize', () => {
+    clearTimeout(window.__hubResizeT);
+    window.__hubResizeT = setTimeout(() => positionHubLines(false), 120);
+  });
+  if(document.fonts && document.fonts.ready){
+    document.fonts.ready.then(() => positionHubLines(false));
+  }
+
+  /* ---------- Sticky quick-nav + scroll progress ---------- */
+  const quickNav = document.getElementById('quickNav');
+  const quickNavBtns = document.querySelectorAll('.quick-nav button');
+  const scrollProgress = document.getElementById('scrollProgress');
+  const hubEl = document.querySelector('.hub-wrap');
+
+  quickNavBtns.forEach(b => {
+    b.addEventListener('click', () => {
+      stopDemo();
+      activate(b.dataset.space);
+      if(window.innerWidth < 980) document.querySelector('.panel-wrap').scrollIntoView({behavior:'smooth', block:'start'});
+    });
+  });
+
+  /* ---------- Parallax hero ---------- */
+  const blobA = document.getElementById('blobA');
+  const blobB = document.getElementById('blobB');
+  const headerInner = document.getElementById('headerInner');
+  let ticking = false;
+
+  function onScroll(){
+    const y = window.scrollY;
+    if(!reducedMotion){
+      blobA.style.transform = `translate3d(0, ${y * 0.16}px, 0)`;
+      blobB.style.transform = `translate3d(0, ${y * -0.12}px, 0)`;
+      headerInner.style.transform = `translate3d(0, ${y * 0.22}px, 0)`;
+      headerInner.style.opacity = Math.max(0, 1 - y / 220);
+    }
+    const docH = document.documentElement.scrollHeight - window.innerHeight;
+    scrollProgress.style.width = (docH > 0 ? (y / docH) * 100 : 0) + '%';
+    quickNav.classList.toggle('show', y > hubEl.offsetTop + hubEl.offsetHeight - 60);
+    ticking = false;
+  }
+  window.addEventListener('scroll', () => {
+    if(!ticking){ requestAnimationFrame(onScroll); ticking = true; }
+  }, {passive:true});
+  onScroll();
+
+  /* ---------- Card 3D tilt (pointer devices only) ---------- */
+  if(window.matchMedia('(hover:hover) and (pointer:fine)').matches && !reducedMotion){
+    document.addEventListener('mousemove', e => {
+      const card = e.target.closest('.card');
+      document.querySelectorAll('.card.tilting').forEach(c => { if(c !== card) resetTilt(c); });
+      if(!card) return;
+      const r = card.getBoundingClientRect();
+      const px = (e.clientX - r.left) / r.width - 0.5;
+      const py = (e.clientY - r.top) / r.height - 0.5;
+      card.classList.add('tilting');
+      card.style.transform = `perspective(600px) rotateX(${py * -5}deg) rotateY(${px * 5}deg) translateY(-2px)`;
+    });
+    document.addEventListener('mouseout', e => {
+      const card = e.target.closest('.card');
+      if(card && !card.contains(e.relatedTarget)) resetTilt(card);
+    });
+  }
+  function resetTilt(card){
+    card.classList.remove('tilting');
+    card.style.transform = '';
+  }
+
+  /* ---------- Count-up stat (employé training completion) ---------- */
+  let statCounted = false;
+  function triggerStatCount(space){
+    if(space !== 'employe' || statCounted) return;
+    statCounted = true;
+    const fill = document.getElementById('trainingFill');
+    const label = document.getElementById('trainingLabel');
+    if(!fill || !label) return;
+    fill.style.width = '0%';
+    let start = null;
+    const target = 87;
+    function step(ts){
+      if(!start) start = ts;
+      const progress = Math.min(1, (ts - start) / 900);
+      const val = Math.round(progress * target);
+      label.textContent = val + ' % des membres de la brigade ont complété la formation obligatoire.';
+      fill.style.width = val + '%';
+      if(progress < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(reducedMotion ? () => { fill.style.width = '87%'; label.textContent = '87 % des membres de la brigade ont complété la formation obligatoire.'; } : step);
+  }
+
+  activate('public');
+
+  /* ---------- Next-steps timeline: reveal on scroll ---------- */
+  const timelineEl = document.querySelector('.timeline');
+  if(timelineEl){
+    const steps = timelineEl.querySelectorAll('.ts-step');
+    if('IntersectionObserver' in window){
+      const tlObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if(entry.isIntersecting){
+            steps.forEach(s => s.classList.add('in'));
+            tlObserver.disconnect();
+          }
+        });
+      }, {threshold:.2});
+      tlObserver.observe(timelineEl);
+    } else {
+      steps.forEach(s => s.classList.add('in'));
+    }
+  }
+
+  /* ---------- Auto-demo mode ---------- */
+  const hubHint = document.getElementById('hubHint');
+  const demoOrder = ['public', 'citoyen', 'organismes', 'employe'];
+  const originalHint = hubHint.textContent;
+  let demoIndex = 0;
+  let demoInterval = null;
+
+  function stepDemo(){
+    demoIndex = (demoIndex + 1) % demoOrder.length;
+    activate(demoOrder[demoIndex]);
+  }
+
+  function stopDemo(){
+    if(!demoInterval) return;
+    clearInterval(demoInterval);
+    demoInterval = null;
+    hubHint.innerHTML = originalHint;
+  }
+
+  if(!reducedMotion){
+    hubHint.innerHTML = '<span class="demo-dot"></span>démonstration automatique — touche pour explorer toi-même';
+    demoInterval = setInterval(stepDemo, 4500);
+  }
+
+  /* ---------- Full-page visual navigation ---------- */
+  const overlay = document.getElementById('pageOverlay');
+  const pageLabel = document.getElementById('pageLabel');
+  const pageBody = document.getElementById('pageBody');
+
+  function card(html){ return `<div class="card">${html}</div>`; }
+  function appBar(bg, title, sub, fg){
+    return `<div class="app-bar" style="background:${bg};${fg?`color:${fg};`:''}">
+      <div><div class="app-title" style="${fg?`color:${fg};`:''}">${title}</div><div class="app-sub" style="${fg?`color:${fg};`:''}">${sub}</div></div>
+    </div>`;
+  }
+
+  const DEMO_CONTENT = {
+    'pub-connexion': {icon:'🔑', title:'Connexion', type:'visual', body:
+      appBar('var(--forest-dark)','Se connecter','Choisis ton type de compte') +
+      `<div class="content">
+        ${card('<h3>🤝 Citoyen</h3><p>Membre de la population, incluant la Brigade citoyenne.</p><span class="btn-ghost btn" style="margin-top:8px;">Choisir</span>')}
+        ${card('<h3>🏘️ Organisme membre</h3><p>Pour les organismes communautaires du territoire.</p><span class="btn-ghost btn" style="margin-top:8px;">Choisir</span>')}
+        ${card('<h3>🗂️ Employé CDC</h3><p>Accès interne, réservé à l’équipe de la CDC.</p><span class="btn-ghost btn" style="margin-top:8px;">Choisir</span>')}
+      </div>`},
+    'pub-membres': {icon:'🏘️', title:'Annuaire des membres', type:'visual', body:
+      appBar('var(--river)','Annuaire des membres','20 organismes du territoire') +
+      `<div class="content">${card(
+        `<div class="list-item"><span>Centre d’action bénévole Mékinac</span><span class="tag-pill" style="background:var(--paper-dim);">Entraide</span></div>
+         <div class="list-item"><span>Maison des familles de Mékinac</span><span class="tag-pill" style="background:var(--paper-dim);">Famille</span></div>
+         <div class="list-item"><span>Carrefour Normandie</span><span class="tag-pill" style="background:var(--paper-dim);">Jeunesse</span></div>
+         <div class="list-item"><span>Maison des jeunes l’Index</span><span class="tag-pill" style="background:var(--paper-dim);">Jeunesse</span></div>
+         <div class="list-item"><span>Le Périscope</span><span class="tag-pill" style="background:var(--paper-dim);">Santé mentale</span></div>
+         <div class="list-item"><span>+ 15 autres organismes</span><span style="color:#8A836C;">→</span></div>`
+      )}</div>`},
+    'pub-evenements': {icon:'📅', title:'Événements', type:'visual', body:
+      appBar('var(--river)','Calendrier','Territoire de Mékinac') +
+      `<div class="content">
+        ${card('<div class="row"><h3>Festival Western de Saint-Tite</h3><span class="tag-pill" style="background:var(--clay);color:#fff;">Brigade active</span></div><p>Septembre 2026 · sentinelles déployées sur le site</p>')}
+        ${card('<h3>Rentrée scolaire accessible</h3><p>24 août · Salle Aubin, Sainte-Thècle</p>')}
+        ${card('<h3>Semaine de Mékinac</h3><p>Mai · activités dans plusieurs municipalités</p>')}
+      </div>`},
+    'pub-contact': {icon:'✉️', title:'Contact', type:'visual', body:
+      appBar('var(--river)','Contact','CDC Mékinac') +
+      `<div class="content">${card(
+        `<div class="list-item"><span>Téléphone</span><span style="color:#8A836C;">418 289-3433</span></div>
+         <div class="list-item"><span>Courriel</span><span style="color:#8A836C;">agente@cdcmekinac.org</span></div>
+         <div class="list-item"><span>Horaire</span><span style="color:#8A836C;">Lun–Ven, 8 h–16 h</span></div>`
+      )}</div>`},
+    'cit-oui': {icon:'✅', title:'Observation notée', type:'text',
+      desc:'Un court formulaire s’ouvrirait ici pour décrire ce qui a été vu (lieu, heure, description libre).'},
+    'cit-non': {icon:'👍', title:'Merci pour ta ronde', type:'text',
+      desc:'Réponse enregistrée pour aujourd’hui — aucune observation à signaler.'},
+    'cit-formations': {icon:'🎓', title:'Formations citoyennes', type:'visual', body:
+      appBar('var(--clay)','Mes formations','Brigade citoyenne') +
+      `<div class="content">
+        ${card('<div class="row"><h3>Comment intervenir si on est témoin ?</h3><span class="tag-pill" style="background:var(--forest);color:#fff;">Complétée ✓</span></div>')}
+        ${card('<div class="row"><h3>Premiers soins psychologiques</h3><span class="tag-pill" style="background:var(--paper-dim);">À venir</span></div>')}
+        ${card('<div class="row"><h3>Procédures radio &amp; consignes de zone</h3><span class="tag-pill" style="background:var(--paper-dim);">À venir</span></div>')}
+      </div>`},
+    'cit-babillard': {icon:'📌', title:'Babillard de la brigade', type:'visual', body:
+      appBar('var(--clay)','Babillard','Réservé aux intervenants') +
+      `<div class="content">
+        ${card('<div class="row"><h3>Consignes du jour</h3><span style="color:#8A836C;font-size:11px;">8 h 02</span></div><p>Point de rassemblement déplacé devant la Caisse populaire pour la ronde de 14 h.</p>')}
+        ${card('<div class="row"><h3>Rappel</h3><span style="color:#8A836C;font-size:11px;">Hier</span></div><p>Toujours porter le dossard visible durant les heures de ronde.</p>')}
+      </div>`},
+    'cit-profil': {icon:'👤', title:'Profil citoyen', type:'visual', body:
+      appBar('var(--clay)','Maude B.','Membre · Brigade citoyenne') +
+      `<div class="content">${card(
+        `<div class="list-item"><span>Rôle</span><span style="color:#8A836C;">Sentinelle</span></div>
+         <div class="list-item"><span>Formations complétées</span><span style="color:#8A836C;">1 / 3</span></div>
+         <div class="list-item"><span>Rondes cette semaine</span><span style="color:#8A836C;">4</span></div>`
+      )}</div>`},
+    'org-formations': {icon:'🎓', title:'Formations aux organismes', type:'visual', body:
+      appBar('var(--wheat)','Zone formation','Offerte par la CDC', 'var(--forest-dark)') +
+      `<div class="content">
+        ${card('<h3>Gouvernance associative</h3><p>3 modules · certificat à la fin</p>')}
+        ${card('<h3>Rédaction de demandes SACAIS</h3><p>2 modules</p>')}
+        ${card('<h3>Communications &amp; réseaux sociaux</h3><p>1 module</p>')}
+      </div>`},
+    'org-demandes': {icon:'📨', title:'Demandes de soutien', type:'visual', body:
+      appBar('var(--wheat)','Mes demandes','Centre d’action bénévole', 'var(--forest-dark)') +
+      `<div class="content">${card(
+        `<div class="list-item"><span>Accompagnement — plan d’action</span><span class="tag-pill" style="background:var(--forest);color:#fff;">Approuvée</span></div>
+         <div class="list-item"><span>Prêt de local — formation d’équipe</span><span class="tag-pill" style="background:var(--wheat);color:var(--forest-dark);">En traitement</span></div>`
+      )}</div>`},
+    'org-ressources': {icon:'📚', title:'Ressources partagées', type:'visual', body:
+      appBar('var(--wheat)','Ressources','Modèles &amp; guides', 'var(--forest-dark)') +
+      `<div class="content">${card(
+        `<div class="list-item"><span>📄 Portrait socioéconomique Mékinac</span><span style="color:#8A836C;">PDF</span></div>
+         <div class="list-item"><span>📄 Guide Loi 25 — organismes</span><span style="color:#8A836C;">PDF</span></div>
+         <div class="list-item"><span>📄 Modèle de rapport annuel</span><span style="color:#8A836C;">DOCX</span></div>`
+      )}</div>`},
+    'org-nouvelle-demande': {icon:'📨', title:'Nouvelle demande', type:'text',
+      desc:'Formulaire de demande (type, urgence, description) envoyé directement à l’équipe de la CDC.'},
+    'emp-comptes': {icon:'🗂️', title:'Gestion des comptes', type:'visual', body:
+      appBar('var(--forest-dark)','Comptes','142 comptes actifs') +
+      `<div class="content">${card(
+        `<div class="list-item"><span>Maude B. — Citoyenne</span><span class="tag-pill" style="background:var(--forest);color:#fff;">Actif</span></div>
+         <div class="list-item"><span>Centre d’action bénévole</span><span class="tag-pill" style="background:var(--forest);color:#fff;">Actif</span></div>
+         <div class="list-item"><span>J. Tremblay — Sentinelle</span><span class="tag-pill" style="background:var(--wheat);color:var(--forest-dark);">À valider</span></div>`
+      )}</div>`},
+    'emp-babillard': {icon:'📌', title:'Babillard interne', type:'visual', body:
+      appBar('var(--forest-dark)','Babillard interne','Équipe &amp; intervenants') +
+      `<div class="content">
+        ${card('<h3>📌 Réunion d’équipe</h3><p>Mardi 9 h — bilan de la semaine du Festival</p>')}
+        ${card('<h3>Nouveau protocole radio</h3><p>À lire avant la prochaine ronde</p>')}
+      </div>`},
+    'emp-rapports': {icon:'📋', title:'Rapports d’intervention', type:'visual', body:
+      appBar('var(--forest-dark)','Rapports','Filtrer par événement, zone, sentinelle') +
+      `<div class="content">${card(
+        `<div class="list-item"><span>Sentinelle T. — Rue Notre-Dame</span><span style="color:#8A836C;">14 h 32</span></div>
+         <div class="list-item"><span>Sentinelle L. — Site principal</span><span style="color:#8A836C;">13 h 05</span></div>
+         <div class="list-item"><span>Sentinelle R. — Stationnement</span><span style="color:#8A836C;">11 h 47</span></div>`
+      )}</div>`},
+    'emp-creer-compte': {icon:'➕', title:'Créer un compte employé', type:'text',
+      desc:'Formulaire de création (nom, courriel, rôle) réservé aux administrateurs.'},
+    'emp-valider-role': {icon:'✔️', title:'Valider un rôle « intervenant »', type:'text',
+      desc:'Confirme l’accès d’un citoyen au babillard et aux outils réservés à la brigade.'}
+  };
+
+  function buildBody(data){
+    if(data.type === 'visual') return data.body;
+    return `<div class="page-hero">
+      <span class="p-icon">${data.icon}</span>
+      <h3>${data.title}</h3>
+      <p>${data.desc}</p>
+      <span class="p-note">à définir ensemble en rencontre</span>
+    </div>`;
+  }
+
+  function openPage(key){
+    const data = DEMO_CONTENT[key];
+    if(!data) return;
+    pageLabel.textContent = data.title;
+    pageBody.innerHTML = buildBody(data);
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closePage(){
+    overlay.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  document.getElementById('pageBack').addEventListener('click', closePage);
+  overlay.addEventListener('click', e => { if(e.target === overlay) closePage(); });
+  document.addEventListener('keydown', e => { if(e.key === 'Escape') closePage(); });
+
+  /* Tabs: switch the active tab visually, open a preview page unless it's the default "home" tab */
+  document.querySelectorAll('.nav-tabs').forEach(group => {
+    const tabs = group.querySelectorAll('.tab');
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        stopDemo();
+        tabs.forEach(t => t.classList.remove('on'));
+        tab.classList.add('on');
+        if(tab.dataset.demo) openPage(tab.dataset.demo);
+      });
+    });
+  });
+
+  /* Any other element wired to a demo destination (buttons, inline links, locked cards) */
+  document.querySelectorAll('[data-demo]:not(.tab)').forEach(el => {
+    el.addEventListener('click', () => { stopDemo(); openPage(el.dataset.demo); });
+  });
+</script>
+
+</body>
+</html>
