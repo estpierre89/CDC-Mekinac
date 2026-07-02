@@ -20,7 +20,7 @@
     --radius:14px;
   }
   *{box-sizing:border-box;margin:0;padding:0;}
-  html{scroll-behavior:smooth;}
+  html{scroll-behavior:smooth;overflow-x:hidden;}
   body{
     background:var(--paper);
     color:var(--ink);
@@ -132,6 +132,7 @@
   /* ---------- Hub diagram ---------- */
   .hub-wrap{
     position:relative;
+    overflow:hidden;
     padding:36px 20px 8px;
     max-width:520px;
     margin:0 auto;
@@ -837,6 +838,7 @@
     <div class="node" data-space="employe"><svg class="n-icon"><use href="#icon-employe"/></svg><span class="n-label">Employé CDC</span></div>
   </div>
   <div class="hub-hint" id="hubHint">▲ touche un espace pour l'ouvrir ▼</div>
+  <div id="hubSentinel" aria-hidden="true" style="height:1px;"></div>
 </div>
 
 <div class="panel-wrap">
@@ -1152,7 +1154,7 @@
   const quickNav = document.getElementById('quickNav');
   const quickNavBtns = document.querySelectorAll('.quick-nav button');
   const scrollProgress = document.getElementById('scrollProgress');
-  const hubEl = document.querySelector('.hub-wrap');
+  const hubSentinel = document.getElementById('hubSentinel');
 
   quickNavBtns.forEach(b => {
     b.addEventListener('click', () => {
@@ -1161,6 +1163,17 @@
       if(window.innerWidth < 980) document.querySelector('.panel-wrap').scrollIntoView({behavior:'smooth', block:'start'});
     });
   });
+
+  /* Reliable show/hide: IntersectionObserver instead of scroll-position math,
+     which avoids quirks from mobile browsers' collapsing address bar */
+  if(hubSentinel && 'IntersectionObserver' in window){
+    const navObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        quickNav.classList.toggle('show', !entry.isIntersecting && entry.boundingClientRect.top < 0);
+      });
+    }, {threshold:0});
+    navObserver.observe(hubSentinel);
+  }
 
   /* ---------- Parallax hero ---------- */
   const blobA = document.getElementById('blobA');
@@ -1178,7 +1191,6 @@
     }
     const docH = document.documentElement.scrollHeight - window.innerHeight;
     scrollProgress.style.width = (docH > 0 ? (y / docH) * 100 : 0) + '%';
-    quickNav.classList.toggle('show', y > hubEl.offsetTop + hubEl.offsetHeight - 60);
     ticking = false;
   }
   window.addEventListener('scroll', () => {
