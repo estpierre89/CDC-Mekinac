@@ -8,7 +8,9 @@ Il fonctionne **sans connexion internet** : les données restent sur l'appareil.
 - Boutons **+1 / +5 / +10** sur chaque article. L'interrupteur **Ajouter / Retirer** les change en −1 / −5 / −10.
 - Toucher le **nombre** d'un article permet d'entrer la quantité exacte.
 - Toucher le **nom** d'un article permet de le modifier ou de le supprimer.
-- Chaque article a un nom, une catégorie, une quantité, un **prix de vente**, une **quantité visée** (facultative) et une note.
+- Chaque article a un **n° de la feuille**, un nom, une catégorie, une quantité, un **prix de vente**, une **quantité visée** (facultative) et une note.
+- **Liste de la feuille** : les 106 articles de la feuille papier (6 catégories, en bandes grises comme sur la feuille) sont chargés automatiquement au premier lancement, avec une quantité de 0. Le menu permet de les rajouter plus tard sans créer de doublons. La liste est dans `liste-depart.js`.
+- Dans l'appli et dans le PDF, les articles suivent l'ordre de la feuille (catégorie, puis numéro). Chercher un numéro (ex. `57`) trouve l'article correspondant.
 - **Recherche** (les accents ne comptent pas), **catégories**, filtres (en stock, en rupture, sous la quantité visée, sans prix) et tri.
 - Un bouton **Annuler** apparaît après chaque changement.
 - **PDF** : liste propre, groupée par catégorie, prête à imprimer ou à envoyer (menu ☰).
@@ -51,10 +53,11 @@ Sauvegarde `.json` :
     "items": [
       {
         "id": "c4f6c9fc-…",
-        "name": "Cahiers Canada",
+        "ref": "33",
+        "name": "Cahier Canada 32 pages",
         "category": "Cahiers",
         "quantity": 140,
-        "price": 0.99,
+        "price": 0.5,
         "target": 200,
         "note": "4 couleurs",
         "createdAt": "…",
@@ -65,10 +68,10 @@ Sauvegarde `.json` :
 }
 ```
 
-`price` et `target` valent `null` quand ils ne sont pas remplis.
+`ref` est le numéro de la feuille (texte, peut être vide). `price` et `target` valent `null` quand ils ne sont pas remplis.
 
 Fichier `.csv` (séparateur `;`, virgule décimale) avec ces colonnes :
-`Article;Catégorie;Quantité;Prix de vente;Quantité visée;Note`.
+`N°;Article;Catégorie;Quantité;Prix de vente;Quantité visée;Note`.
 Seule la colonne `Article` est obligatoire à l'import.
 
 ## Fichiers
@@ -77,6 +80,7 @@ Seule la colonne `Article` est obligatoire à l'import.
 | --- | --- |
 | `index.html` | Page et styles |
 | `app.js` | Logique : stockage, liste, filtres, PDF, import/export |
+| `liste-depart.js` | Les 106 articles de la feuille (liste de départ) |
 | `sw.js` | Cache hors connexion (changer `CACHE_VERSION` à chaque mise à jour) |
 | `manifest.webmanifest`, `icons/` | Installation sur l'écran d'accueil |
 | `vendor/` | jsPDF 2.5.2 et jsPDF-AutoTable 3.8.4 (licence MIT), inclus pour fonctionner sans connexion |

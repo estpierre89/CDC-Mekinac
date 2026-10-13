@@ -1,11 +1,12 @@
 /* Service worker : garde l'application en cache pour qu'elle fonctionne sans connexion.
  * Changer CACHE_VERSION à chaque mise à jour des fichiers de l'application. */
-const CACHE_VERSION = 'inventaire-v1';
+const CACHE_VERSION = 'inventaire-v2';
 const FONT_CACHE = 'inventaire-polices-v1';
 const APP_FILES = [
   './',
   './index.html',
   './app.js',
+  './liste-depart.js',
   './manifest.webmanifest',
   './vendor/jspdf.umd.min.js',
   './vendor/jspdf.plugin.autotable.min.js',

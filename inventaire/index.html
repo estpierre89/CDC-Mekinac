@@ -33,6 +33,7 @@
     --clay:#B5502F;
     --clay-soft:#F4DDD3;
     --line:#D8D0B8;
+    --sheet-gray:#D6D4CD;
     --radius:14px;
     --safe-b:env(safe-area-inset-bottom, 0px);
     --serif:'Fraunces', Georgia, 'Times New Roman', serif;
@@ -231,15 +232,19 @@
     color:var(--clay);font-weight:600;text-decoration:underline;text-underline-offset:2px;
     padding:4px 2px;
   }
+  /* Bandes grises de catégorie, comme sur la feuille papier */
   .group-title{
-    display:flex;align-items:baseline;gap:8px;
-    font-family:var(--serif);font-weight:600;font-size:19px;
-    color:var(--forest-dark);
-    margin:18px 2px 8px;
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    background:var(--sheet-gray);
+    border-radius:10px;
+    padding:9px 12px;
+    font-weight:700;font-size:14.5px;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--ink);
+    text-align:center;
+    margin:20px 0 10px;
   }
   .group-title:first-child{margin-top:4px;}
-  .group-title .n{font-family:var(--mono);font-size:12px;font-weight:400;color:var(--ink-soft);}
-  .group-title::after{content:"";flex:1;border-bottom:1.5px dashed var(--line);transform:translateY(-4px);}
+  .group-title .n{font-family:var(--mono);font-size:12px;font-weight:500;letter-spacing:0;color:var(--ink-soft);}
 
   .item{
     background:var(--card);
@@ -265,6 +270,7 @@
     margin-top:4px;
     font-size:13px;color:var(--ink-soft);
   }
+  .item-title .ref{font-family:var(--mono);color:var(--ink-soft);}
   .item-title .price{font-family:var(--mono);color:var(--forest);font-weight:500;}
   .item-title .noprice{font-style:italic;}
   .item-title .note{
@@ -409,6 +415,7 @@
   .field .err{font-size:13px;color:var(--clay);margin-top:5px;font-weight:600;}
   .field.invalid input{border-color:var(--clay);}
   .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .row-ref{display:grid;grid-template-columns:96px 1fr;gap:10px;}
   .suffix{position:relative;}
   .suffix input{padding-right:34px;}
   .suffix span{position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--ink-soft);font-family:var(--mono);}
@@ -578,10 +585,16 @@
       <p class="warn" id="iNameWarn" hidden></p>
       <p class="err" id="iNameErr" hidden>Le nom est obligatoire.</p>
     </div>
-    <div class="field">
-      <label for="iCategory">Catégorie <span class="opt">(facultatif)</span></label>
-      <input id="iCategory" name="category" type="text" list="categoryList" autocomplete="off" autocapitalize="sentences" maxlength="60" placeholder="ex. Écriture">
-      <datalist id="categoryList"></datalist>
+    <div class="row-ref">
+      <div class="field">
+        <label for="iRef">N° <span class="opt">(feuille)</span></label>
+        <input id="iRef" name="ref" type="text" inputmode="numeric" autocomplete="off" maxlength="12" placeholder="ex. 12">
+      </div>
+      <div class="field">
+        <label for="iCategory">Catégorie <span class="opt">(facultatif)</span></label>
+        <input id="iCategory" name="category" type="text" list="categoryList" autocomplete="off" autocapitalize="sentences" maxlength="60" placeholder="ex. Crayons">
+        <datalist id="categoryList"></datalist>
+      </div>
     </div>
     <div class="row2">
       <div class="field">
@@ -680,6 +693,10 @@
         <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 10h16M4 15h16M10 4v16"/></svg></span>
         <span><strong>Exporter pour Excel</strong><span class="d">Fichier .csv (tableur)</span></span>
       </button>
+      <button class="menu-item" type="button" id="mStarter">
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V2.5h6V4M9 10h6M9 14h6M9 18h3"/></svg></span>
+        <span><strong>Ajouter la liste de la feuille</strong><span class="d">Les 106 articles de la feuille, sans doublons</span></span>
+      </button>
       <button class="menu-item" type="button" id="mImport">
         <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/></svg></span>
         <span><strong>Importer un fichier</strong><span class="d">Sauvegarde .json ou tableur .csv</span></span>
@@ -754,6 +771,7 @@
 
 <script src="vendor/jspdf.umd.min.js" defer></script>
 <script src="vendor/jspdf.plugin.autotable.min.js" defer></script>
+<script src="liste-depart.js" defer></script>
 <script src="app.js" defer></script>
 </body>
 </html>

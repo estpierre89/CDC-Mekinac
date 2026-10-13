@@ -79,6 +79,7 @@
     const t = nowIso();
     return {
       id: typeof o.id === 'string' && o.id ? o.id : uid(),
+      ref: String(o.ref ?? '').trim().replace(/^#/, '').slice(0, 12),
       name,
       category: String(o.category ?? '').trim().replace(/\s+/g, ' ').slice(0, 60),
       quantity: Number.isFinite(qty) ? clampQty(qty) : 0,
@@ -98,6 +99,7 @@
     items: [],
     meta: { updatedAt: null, lastExportAt: null },
     ok: true,
+    fresh: false, // aucun inventaire enregistré sur cet appareil
 
     load() {
       let raw = null;
@@ -107,6 +109,7 @@
         this.ok = false;
         return;
       }
+      this.fresh = !raw;
       if (!raw) return;
       try {
         const d = JSON.parse(raw);
@@ -148,7 +151,7 @@
     { id: 'noprice', label: 'Sans prix', test: (i) => i.price == null },
   ];
   const SORTS = [
-    { id: 'category', label: 'Catégorie, puis nom' },
+    { id: 'category', label: 'Catégorie (ordre de la feuille)' },
     { id: 'name', label: 'Nom (A → Z)' },
     { id: 'qtyAsc', label: 'Quantité (plus petite d\'abord)' },
     { id: 'qtyDesc', label: 'Quantité (plus grande d\'abord)' },
@@ -157,9 +160,13 @@
   const DEFAULT_UI = { search: '', category: null, status: 'all', sort: 'category' };
   const ui = Object.assign({ mode: 'add' }, DEFAULT_UI);
 
+  const byRefThenName = (a, b) => {
+    if (!a.ref !== !b.ref) return a.ref ? -1 : 1; // sans numéro à la fin
+    return collator.compare(a.ref, b.ref) || collator.compare(a.name, b.name);
+  };
   const byCategoryThenName = (a, b) => {
     if (!a.category !== !b.category) return a.category ? -1 : 1; // « Sans catégorie » à la fin
-    return collator.compare(a.category, b.category) || collator.compare(a.name, b.name);
+    return collator.compare(a.category, b.category) || byRefThenName(a, b);
   };
   const SORTERS = {
     category: byCategoryThenName,
@@ -172,7 +179,7 @@
   function matchesSearch(item, words) {
     if (!words.length) return true;
     const hay = norm(item.name + ' ' + item.category + ' ' + item.note);
-    return words.every((w) => hay.includes(w));
+    return words.every((w) => hay.includes(w) || (item.ref && w.replace(/^(#|no|n°)/, '') === norm(item.ref)));
   }
 
   function visibleItems() {
@@ -241,6 +248,7 @@
   function itemCard(i) {
     const empty = i.quantity === 0;
     const sub = [];
+    if (i.ref) sub.push(`<span class="ref">n° ${esc(i.ref)}</span>`);
     if (i.category && ui.sort !== 'category') sub.push(`<span>${esc(i.category)}</span>`);
     sub.push(i.price != null
       ? `<span class="price">${fmtPrice(i.price)}</span>`
@@ -284,8 +292,9 @@
     if (!Store.items.length) {
       list.innerHTML = `<div class="empty-state">
         <h2>Aucun article pour l'instant</h2>
-        <p>Ajoute ton premier article ou importe une liste existante (.json ou .csv).</p>
-        <button type="button" class="btn" data-empty="add">Ajouter un article</button>
+        <p>Charge la liste de la feuille, ajoute un article ou importe un fichier (.json ou .csv).</p>
+        ${starterList().length ? `<button type="button" class="btn" data-empty="starter">Charger la liste de la feuille (${starterList().length} articles)</button>` : ''}
+        <button type="button" class="btn${starterList().length ? ' secondary' : ''}" data-empty="add">Ajouter un article</button>
         <button type="button" class="btn secondary" data-empty="import">Importer un fichier</button>
       </div>`;
       return;
@@ -451,6 +460,7 @@
     $('#itemDialogTitle').textContent = item ? 'Modifier l\'article' : 'Nouvel article';
     $('#iName').value = item?.name ?? '';
     $('#iCategory').value = item?.category ?? (ui.category || '');
+    $('#iRef').value = item?.ref ?? '';
     $('#iQty').value = item ? String(item.quantity) : '';
     $('#iPrice').value = item?.price != null ? item.price.toFixed(2).replace('.', ',') : '';
     $('#iTarget').value = item?.target != null ? String(item.target) : '';
@@ -501,6 +511,7 @@
     const fields = {
       name,
       category: $('#iCategory').value.trim().replace(/\s+/g, ' '),
+      ref: $('#iRef').value,
       quantity: qty ?? 0,
       price,
       target: target && target > 0 ? target : null,
@@ -666,7 +677,7 @@
     });
   }
 
-  const CSV_HEADERS = ['Article', 'Catégorie', 'Quantité', 'Prix de vente', 'Quantité visée', 'Note'];
+  const CSV_HEADERS = ['N°', 'Article', 'Catégorie', 'Quantité', 'Prix de vente', 'Quantité visée', 'Note'];
 
   function exportCsv() {
     if (!Store.items.length) { toast('L\'inventaire est vide : rien à exporter.'); return; }
@@ -675,7 +686,7 @@
       return /[";\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
     };
     const rows = [CSV_HEADERS].concat([...Store.items].sort(byCategoryThenName).map((i) => [
-      i.name, i.category, i.quantity,
+      i.ref, i.name, i.category, i.quantity,
       i.price != null ? i.price.toFixed(2).replace('.', ',') : '',
       i.target ?? '', i.note,
     ]));
@@ -717,6 +728,7 @@
   }
 
   const CSV_COLUMNS = {
+    ref: ['n°', 'no', 'no.', 'numero', 'num', '#', 'n'],
     name: ['article', 'articles', 'nom', 'name', 'item', 'produit', 'description', 'materiel'],
     category: ['categorie', 'category', 'type', 'section'],
     quantity: ['quantite', 'qte', 'qty', 'quantity', 'nombre', 'nb', 'stock', 'inventaire'],
@@ -837,6 +849,7 @@
     forest: [36, 64, 47], forestDark: [24, 43, 32], wheat: [212, 169, 79], wheatSoft: [243, 230, 196],
     paper: [245, 241, 228], paperDim: [235, 229, 210], zebra: [250, 248, 241],
     ink: [32, 28, 20], inkSoft: [90, 84, 68], clay: [181, 80, 47], line: [216, 208, 184], mist: [201, 211, 196],
+    sheetGray: [214, 212, 205],
   };
 
   function describeSelection() {
@@ -890,6 +903,7 @@
     const items = [...sourceItems].sort(byCategoryThenName);
     const hasTarget = items.some((i) => i.target != null);
     const hasNote = items.some((i) => i.note);
+    const hasRef = items.some((i) => i.ref);
     const units = items.reduce((s, i) => s + i.quantity, 0);
     const sp = (s) => plainSpaces(s);
 
@@ -952,7 +966,9 @@
     y += 14;
 
     // --- Tableau groupé par catégorie ---
-    const columns = [{ key: 'name', label: 'Article' }];
+    const columns = [];
+    if (hasRef) columns.push({ key: 'ref', label: 'N°' });
+    columns.push({ key: 'name', label: 'Article' });
     if (hasNote) columns.push({ key: 'note', label: 'Note' });
     columns.push({ key: 'qty', label: 'Quantité' });
     if (hasTarget) columns.push({ key: 'target', label: 'Visée' });
@@ -967,10 +983,10 @@
         stripe = 0;
         const n = items.filter((x) => x.category === current).length;
         body.push([{
-          content: `${current || NO_CATEGORY}  (${n})`,
+          content: `${(current || NO_CATEGORY).toLocaleUpperCase('fr-CA')}  (${n})`,
           colSpan: columns.length,
           styles: {
-            fillColor: C.paperDim, textColor: C.forestDark, fontStyle: 'bold', fontSize: 10,
+            fillColor: C.sheetGray, textColor: C.ink, fontStyle: 'bold', fontSize: 10, halign: 'center',
             cellPadding: { top: 7, bottom: 6, left: 8, right: 8 },
           },
         }]);
@@ -978,6 +994,7 @@
       }
       const row = columns.map((c) => {
         switch (c.key) {
+          case 'ref': return i.ref;
           case 'name': return i.name;
           case 'note': return i.note || '';
           case 'qty': return { content: fmtInt(i.quantity, ' '), _zero: i.quantity === 0 };
@@ -993,6 +1010,7 @@
 
     const colStyles = {};
     columns.forEach((c, idx) => {
+      if (c.key === 'ref') colStyles[idx] = { cellWidth: 30, halign: 'right', textColor: C.inkSoft };
       if (c.key === 'name') colStyles[idx] = { cellWidth: 'auto', fontStyle: 'bold', textColor: C.ink };
       if (c.key === 'note') colStyles[idx] = { cellWidth: hasNote ? 150 : 0, textColor: C.inkSoft, fontSize: 8.5 };
       if (c.key === 'qty') colStyles[idx] = { cellWidth: 62, halign: 'right', fontStyle: 'bold' };
@@ -1024,7 +1042,7 @@
       didParseCell: (data) => {
         if (data.section === 'head') {
           const key = columns[data.column.index]?.key;
-          if (key === 'qty' || key === 'target' || key === 'price') data.cell.styles.halign = 'right';
+          if (key === 'ref' || key === 'qty' || key === 'target' || key === 'price') data.cell.styles.halign = 'right';
         }
         if (data.section === 'body' && data.row.raw._stripe) data.cell.styles.fillColor = C.zebra;
         if (data.section === 'body' && data.cell.raw && data.cell.raw._zero) {
@@ -1060,6 +1078,42 @@
     }
 
     return doc.output('blob');
+  }
+
+  /* ================================================================
+   * Liste de départ (articles de la feuille, voir liste-depart.js)
+   * ================================================================ */
+  const starterList = () => (Array.isArray(window.LISTE_DEPART) ? window.LISTE_DEPART : []);
+  const missingStarterItems = () => {
+    const names = new Set(Store.items.map((i) => norm(i.name)));
+    return starterList().filter((o) => !names.has(norm(o.name)));
+  };
+
+  /** Ajoute les articles de la feuille absents de l'inventaire, sans toucher aux autres. */
+  function addStarterItems() {
+    const added = missingStarterItems().map(sanitizeItem).filter(Boolean);
+    Store.items.push(...added);
+    Store.save();
+    return added.length;
+  }
+
+  async function loadStarterFromMenu() {
+    const missing = missingStarterItems().length;
+    if (!missing) { toast('Tous les articles de la feuille sont déjà dans l\'inventaire.'); return; }
+    const ok = await confirmBox('Ajouter la liste de la feuille ?',
+      `${fmtInt(missing)} ${plural(missing, 'article de la feuille sera ajouté', 'articles de la feuille seront ajoutés')} (quantité 0). Les articles déjà présents ne sont pas modifiés.`,
+      'Ajouter');
+    if (!ok) return;
+    const previous = Store.items.slice();
+    const n = addStarterItems();
+    closeDialog($('#menuDialog'));
+    resetFilters();
+    toast(`${fmtInt(n)} ${plural(n, 'article ajouté', 'articles ajoutés')}`, () => {
+      Store.items = previous;
+      Store.save();
+      render();
+      hideToast();
+    });
   }
 
   /* ================================================================
@@ -1113,6 +1167,7 @@
       if (empty) {
         const a = empty.dataset.empty;
         if (a === 'add') openItem();
+        else if (a === 'starter') { addStarterItems(); resetFilters(); toast('Liste de la feuille chargée.'); }
         else if (a === 'import') $('#importFile').click();
         else resetFilters();
         return;
@@ -1196,6 +1251,7 @@
     $('#mExportCsv').addEventListener('click', () => { closeDialog($('#menuDialog')); exportCsv(); });
     $('#mImport').addEventListener('click', () => $('#importFile').click());
     $('#mClear').addEventListener('click', clearAll);
+    $('#mStarter').addEventListener('click', loadStarterFromMenu);
     $('#importFile').addEventListener('change', async (e) => {
       const f = e.target.files && e.target.files[0];
       e.target.value = '';
@@ -1229,7 +1285,13 @@
     }
   }
   bindEvents();
-  render();
+  if (Store.fresh && Store.ok && starterList().length) {
+    const n = addStarterItems();
+    render();
+    toast(`Liste de la feuille chargée : ${fmtInt(n)} articles.`);
+  } else {
+    render();
+  }
 
   // Demande au navigateur de ne pas effacer les données automatiquement.
   if (navigator.storage && navigator.storage.persist) {
