@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="fr-CA">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Inventaire — Rentrée scolaire · CDC Mékinac</title>
+<meta name="description" content="Inventaire du matériel scolaire de la CDC Mékinac pour la rentrée scolaire.">
+<meta name="theme-color" content="#24402F">
+<meta name="color-scheme" content="light">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Inventaire">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --forest:#24402F;
+    --forest-dark:#182B20;
+    --forest-soft:#E3E8DF;
+    --river:#3E6E80;
+    --wheat:#D4A94F;
+    --wheat-soft:#F3E6C4;
+    --paper:#F5F1E4;
+    --paper-dim:#EBE5D2;
+    --card:#FFFDF7;
+    --ink:#201C14;
+    --ink-soft:#5A5444;
+    --clay:#B5502F;
+    --clay-soft:#F4DDD3;
+    --line:#D8D0B8;
+    --radius:14px;
+    --safe-b:env(safe-area-inset-bottom, 0px);
+    --serif:'Fraunces', Georgia, 'Times New Roman', serif;
+    --sans:'Public Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --mono:'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html{overflow-x:hidden;-webkit-text-size-adjust:100%;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--sans);
+    font-size:16px;
+    line-height:1.45;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+    min-height:100vh;
+    padding-bottom:calc(110px + var(--safe-b));
+    -webkit-tap-highlight-color:transparent;
+  }
+  ::selection{background:var(--wheat);color:var(--forest-dark);}
+  button,input,select,textarea{font:inherit;color:inherit;}
+  button{cursor:pointer;border:0;background:none;touch-action:manipulation;}
+  .wrap{max-width:720px;margin:0 auto;padding:0 16px;}
+  .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;}
+
+  /* ---------- Header : bande forêt avec coutures ---------- */
+  .top{
+    background:var(--forest);
+    color:var(--paper);
+    padding-top:env(safe-area-inset-top, 0px);
+    position:relative;
+  }
+  .top::after{ /* couture de botte */
+    content:"";
+    position:absolute;left:10px;right:10px;bottom:7px;
+    border-bottom:1.5px dashed var(--wheat);
+    opacity:.55;
+  }
+  .top-inner{
+    display:flex;align-items:flex-start;justify-content:space-between;gap:12px;
+    padding-top:20px;padding-bottom:24px;
+  }
+  .eyebrow{
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    color:var(--wheat);
+    margin-bottom:4px;
+  }
+  h1{
+    font-family:var(--serif);
+    font-weight:600;
+    font-size:28px;
+    line-height:1.1;
+    letter-spacing:-.01em;
+  }
+  h1 em{font-style:italic;font-weight:500;color:var(--wheat-soft);}
+  .meta{
+    margin-top:8px;
+    font-family:var(--mono);
+    font-size:12px;
+    color:#C9D3C4;
+  }
+  .icon-btn{
+    flex-shrink:0;
+    width:44px;height:44px;border-radius:12px;
+    display:grid;place-items:center;
+    color:var(--paper);
+    border:1px solid rgba(245,241,228,.25);
+    margin-top:4px;
+  }
+  .icon-btn:active{background:rgba(245,241,228,.12);}
+  .icon-btn svg{width:22px;height:22px;}
+  .stitch-divider{
+    height:5px;
+    border-top:1.5px dashed var(--clay);
+    border-bottom:1.5px dashed var(--clay);
+    opacity:.32;
+    margin-top:3px;
+  }
+
+  /* ---------- Barre d'outils (collante) ---------- */
+  .toolbar{
+    position:sticky;top:0;z-index:20;
+    background:rgba(245,241,228,.96);
+    backdrop-filter:saturate(1.2) blur(8px);
+    -webkit-backdrop-filter:saturate(1.2) blur(8px);
+    border-bottom:1px solid var(--line);
+    padding:10px 0 0;
+  }
+  .search{
+    position:relative;
+    display:flex;align-items:center;
+  }
+  .search svg{position:absolute;left:12px;width:18px;height:18px;color:var(--ink-soft);pointer-events:none;}
+  .search input{
+    width:100%;
+    height:46px;
+    border-radius:12px;
+    border:1.5px solid var(--line);
+    background:#fff;
+    padding:0 44px 0 40px;
+    font-size:16px;
+    outline:none;
+    -webkit-appearance:none;appearance:none;
+  }
+  .search input:focus{border-color:var(--forest);}
+  .search input::-webkit-search-cancel-button{display:none;}
+  .search .clear{
+    position:absolute;right:4px;width:38px;height:38px;border-radius:10px;
+    display:none;place-items:center;color:var(--ink-soft);font-size:20px;
+  }
+  .search.has-value .clear{display:grid;}
+
+  .controls{display:flex;gap:8px;margin-top:10px;align-items:stretch;}
+  .mode{
+    flex:1;
+    display:grid;grid-template-columns:1fr 1fr;
+    background:var(--paper-dim);
+    border-radius:12px;
+    padding:3px;
+    position:relative;
+  }
+  .mode button{
+    height:40px;border-radius:9px;
+    font-weight:600;font-size:15px;
+    color:var(--ink-soft);
+    display:flex;align-items:center;justify-content:center;gap:6px;
+    position:relative;z-index:1;
+    transition:color .15s;
+  }
+  .mode button[aria-pressed="true"]{color:#fff;}
+  .mode::before{
+    content:"";position:absolute;top:3px;bottom:3px;left:3px;width:calc(50% - 3px);
+    border-radius:9px;background:var(--forest);
+    transition:transform .2s ease, background .2s ease;
+  }
+  body.removing .mode::before{transform:translateX(100%);background:var(--clay);}
+  .filter-btn{
+    flex-shrink:0;
+    height:46px;padding:0 14px;border-radius:12px;
+    border:1.5px solid var(--line);background:#fff;
+    font-weight:600;font-size:15px;
+    display:flex;align-items:center;gap:6px;
+    position:relative;
+  }
+  .filter-btn svg{width:18px;height:18px;}
+  .filter-btn .dot{
+    min-width:20px;height:20px;padding:0 6px;border-radius:10px;
+    background:var(--clay);color:#fff;font-size:12px;font-family:var(--mono);
+    display:none;align-items:center;justify-content:center;
+  }
+  .filter-btn.active{border-color:var(--forest);}
+  .filter-btn.active .dot{display:inline-flex;}
+
+  .chips{
+    display:flex;gap:6px;
+    overflow-x:auto;
+    padding:10px 16px 10px;
+    margin:0 -16px;
+    scrollbar-width:none;
+    -webkit-overflow-scrolling:touch;
+  }
+  .chips::-webkit-scrollbar{display:none;}
+  .chip{
+    flex-shrink:0;
+    height:34px;padding:0 14px;border-radius:17px;
+    border:1px solid var(--line);background:#fff;
+    font-size:14px;font-weight:500;white-space:nowrap;
+    color:var(--forest-dark);
+  }
+  .chip .n{font-family:var(--mono);font-size:11.5px;color:var(--ink-soft);margin-left:4px;}
+  .chip[aria-pressed="true"]{background:var(--forest);border-color:var(--forest);color:#fff;}
+  .chip[aria-pressed="true"] .n{color:#C9D3C4;}
+
+  .mode-banner{
+    display:none;
+    margin:0 -16px;
+    padding:7px 16px;
+    background:var(--clay);color:#fff;
+    font-size:13px;font-weight:600;text-align:center;
+  }
+  body.removing .mode-banner{display:block;}
+
+  /* ---------- Liste ---------- */
+  .list{padding-top:12px;}
+  .active-filters{
+    display:flex;flex-wrap:wrap;align-items:center;gap:6px;
+    font-size:13px;color:var(--ink-soft);
+    margin-bottom:10px;
+  }
+  .active-filters:empty{display:none;}
+  .active-filters .reset{
+    color:var(--clay);font-weight:600;text-decoration:underline;text-underline-offset:2px;
+    padding:4px 2px;
+  }
+  .group-title{
+    display:flex;align-items:baseline;gap:8px;
+    font-family:var(--serif);font-weight:600;font-size:19px;
+    color:var(--forest-dark);
+    margin:18px 2px 8px;
+  }
+  .group-title:first-child{margin-top:4px;}
+  .group-title .n{font-family:var(--mono);font-size:12px;font-weight:400;color:var(--ink-soft);}
+  .group-title::after{content:"";flex:1;border-bottom:1.5px dashed var(--line);transform:translateY(-4px);}
+
+  .item{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:12px 12px 12px 14px;
+    margin-bottom:10px;
+    box-shadow:0 1px 0 rgba(32,28,20,.03);
+  }
+  .item.empty{border-left:4px solid var(--clay);padding-left:11px;}
+  .item-head{display:flex;gap:10px;align-items:flex-start;}
+  .item-title{
+    flex:1;min-width:0;text-align:left;
+    padding:2px 0;
+  }
+  .item-title .name{
+    display:block;
+    font-weight:600;font-size:16.5px;line-height:1.25;
+    overflow-wrap:anywhere;
+  }
+  .item-title .sub{
+    display:flex;flex-wrap:wrap;gap:4px 10px;
+    margin-top:4px;
+    font-size:13px;color:var(--ink-soft);
+  }
+  .item-title .price{font-family:var(--mono);color:var(--forest);font-weight:500;}
+  .item-title .noprice{font-style:italic;}
+  .item-title .note{
+    display:block;margin-top:4px;
+    font-size:13px;color:var(--ink-soft);font-style:italic;
+    overflow-wrap:anywhere;
+  }
+  .qty{
+    flex-shrink:0;
+    min-width:72px;height:56px;padding:0 10px;
+    border-radius:12px;
+    background:var(--forest-soft);
+    color:var(--forest-dark);
+    font-family:var(--mono);font-weight:600;font-size:24px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1;
+    border:1.5px solid transparent;
+  }
+  .qty small{font-family:var(--sans);font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-top:4px;opacity:.7;}
+  .qty:active{border-color:var(--forest);}
+  .item.empty .qty{background:var(--clay-soft);color:var(--clay);}
+  .qty.bump{animation:bump .28s ease;}
+  @keyframes bump{40%{transform:scale(1.1);}}
+
+  .target{margin-top:10px;}
+  .target-bar{height:6px;border-radius:3px;background:var(--paper-dim);overflow:hidden;}
+  .target-bar span{display:block;height:100%;background:var(--wheat);border-radius:3px;transition:width .25s ease;}
+  .target.reached .target-bar span{background:var(--forest);}
+  .target-label{display:flex;justify-content:space-between;margin-top:4px;font-size:12px;color:var(--ink-soft);font-family:var(--mono);}
+  .target.reached .target-label .state{color:var(--forest);font-weight:600;}
+
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px;}
+  .steps button{
+    height:48px;border-radius:11px;
+    background:var(--forest);color:#fff;
+    font-family:var(--mono);font-weight:600;font-size:18px;
+    transition:transform .08s ease, filter .15s;
+  }
+  .steps button:active{transform:scale(.96);filter:brightness(1.15);}
+  body.removing .steps button{background:var(--clay);}
+  body.removing .item.empty .steps button{opacity:.4;}
+
+  .empty-state{
+    text-align:center;
+    padding:40px 18px;
+    border:1.5px dashed var(--line);
+    border-radius:var(--radius);
+    background:rgba(255,253,247,.6);
+    margin-top:8px;
+  }
+  .empty-state h2{font-family:var(--serif);font-weight:600;font-size:22px;color:var(--forest-dark);margin-bottom:6px;}
+  .empty-state p{color:var(--ink-soft);font-size:15px;max-width:34ch;margin:0 auto 18px;}
+  .empty-state .btn + .btn{margin-top:8px;}
+
+  /* ---------- Boutons génériques ---------- */
+  .btn{
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    width:100%;height:50px;border-radius:12px;
+    font-weight:600;font-size:16px;
+    background:var(--forest);color:#fff;
+  }
+  .btn:active{filter:brightness(1.15);}
+  .btn.secondary{background:#fff;color:var(--forest-dark);border:1.5px solid var(--line);}
+  .btn.danger{background:#fff;color:var(--clay);border:1.5px solid var(--clay);}
+  .btn.danger-solid{background:var(--clay);color:#fff;}
+  .btn svg{width:20px;height:20px;}
+  .btn-row{display:flex;gap:8px;margin-top:16px;}
+  .btn-row .btn{flex:1;}
+
+  .fab{
+    position:fixed;z-index:30;
+    right:16px;bottom:calc(18px + var(--safe-b));
+    height:56px;padding:0 22px 0 18px;border-radius:28px;
+    background:var(--wheat);color:var(--forest-dark);
+    font-weight:700;font-size:16px;
+    display:flex;align-items:center;gap:8px;
+    box-shadow:0 6px 18px rgba(24,43,32,.28), 0 0 0 3px var(--paper);
+  }
+  .fab svg{width:22px;height:22px;}
+  .fab:active{transform:scale(.97);}
+  @media (min-width:760px){ .fab{right:calc(50% - 360px + 16px);} }
+
+  /* ---------- Feuilles (dialogues) ---------- */
+  dialog{
+    border:0;padding:0;
+    background:transparent;
+    max-width:100%;max-height:100%;
+    width:100%;
+    margin:auto auto 0;
+    color:var(--ink);
+  }
+  dialog::backdrop{background:rgba(24,43,32,.45);}
+  .sheet{
+    background:var(--paper);
+    border-radius:20px 20px 0 0;
+    max-width:560px;margin:0 auto;
+    max-height:92vh;max-height:92dvh;
+    overflow-y:auto;
+    padding:8px 16px calc(20px + var(--safe-b));
+    position:relative;
+  }
+  .sheet::before{
+    content:"";display:block;width:40px;height:4px;border-radius:2px;
+    background:var(--line);margin:4px auto 12px;
+  }
+  .sheet-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;}
+  .sheet h2{font-family:var(--serif);font-weight:600;font-size:22px;color:var(--forest-dark);line-height:1.2;}
+  .sheet .close{
+    width:40px;height:40px;border-radius:10px;flex-shrink:0;
+    display:grid;place-items:center;font-size:24px;color:var(--ink-soft);
+  }
+  .sheet .lead{color:var(--ink-soft);font-size:15px;margin:-6px 0 14px;}
+  .sheet .stitch{border-top:1.5px dashed var(--line);margin:16px 0;}
+  dialog[open] .sheet{animation:sheetUp .22s ease;}
+  @keyframes sheetUp{from{transform:translateY(40px);opacity:.4;}}
+  @media (min-width:600px){
+    dialog{margin:auto;}
+    .sheet{border-radius:20px;}
+    .sheet::before{display:none;}
+    .sheet{padding-top:18px;}
+  }
+
+  .field{margin-bottom:14px;}
+  .field label, .field .label{
+    display:block;font-size:14px;font-weight:600;margin-bottom:6px;color:var(--forest-dark);
+  }
+  .field label .opt{font-weight:400;color:var(--ink-soft);}
+  .field input, .field textarea, .field select{
+    width:100%;
+    min-height:48px;
+    border-radius:12px;
+    border:1.5px solid var(--line);
+    background:#fff;
+    padding:10px 12px;
+    font-size:16px;
+    outline:none;
+    -webkit-appearance:none;appearance:none;
+  }
+  .field textarea{min-height:72px;resize:vertical;}
+  .field input:focus, .field textarea:focus, .field select:focus{border-color:var(--forest);}
+  .field .hint{font-size:13px;color:var(--ink-soft);margin-top:5px;}
+  .field .warn{font-size:13px;color:var(--clay);margin-top:5px;font-weight:500;}
+  .field .err{font-size:13px;color:var(--clay);margin-top:5px;font-weight:600;}
+  .field.invalid input{border-color:var(--clay);}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .suffix{position:relative;}
+  .suffix input{padding-right:34px;}
+  .suffix span{position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--ink-soft);font-family:var(--mono);}
+
+  .qty-big{
+    text-align:center;
+    font-family:var(--mono);font-weight:600;
+    font-size:40px !important;
+    height:76px;
+  }
+  .qty-quick{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px;}
+  .qty-quick button{
+    height:44px;border-radius:10px;border:1.5px solid var(--line);background:#fff;
+    font-family:var(--mono);font-weight:600;font-size:16px;
+  }
+  .qty-quick button:active{border-color:var(--forest);}
+
+  .radio-list{display:flex;flex-direction:column;gap:6px;}
+  .radio-list label{
+    display:flex;align-items:center;gap:12px;
+    min-height:48px;padding:0 14px;border-radius:12px;
+    background:#fff;border:1.5px solid var(--line);
+    font-weight:500;font-size:15px;
+  }
+  .radio-list input{accent-color:var(--forest);width:20px;height:20px;flex-shrink:0;}
+  .radio-list label:has(input:checked){border-color:var(--forest);background:var(--forest-soft);}
+  .radio-list .n{margin-left:auto;font-family:var(--mono);font-size:12px;color:var(--ink-soft);}
+
+  .menu-list{display:flex;flex-direction:column;gap:8px;}
+  .menu-item{
+    display:flex;align-items:center;gap:14px;
+    width:100%;min-height:62px;padding:10px 14px;border-radius:12px;
+    background:#fff;border:1.5px solid var(--line);
+    text-align:left;
+  }
+  .menu-item:active{border-color:var(--forest);}
+  .menu-item .ic{
+    width:40px;height:40px;border-radius:10px;flex-shrink:0;
+    display:grid;place-items:center;
+    background:var(--forest-soft);color:var(--forest);
+  }
+  .menu-item .ic svg{width:22px;height:22px;}
+  .menu-item strong{display:block;font-size:15.5px;}
+  .menu-item span.d{display:block;font-size:13px;color:var(--ink-soft);margin-top:1px;}
+  .menu-item.danger .ic{background:var(--clay-soft);color:var(--clay);}
+  .menu-item.danger strong{color:var(--clay);}
+  .backup-note{
+    font-size:13px;color:var(--ink-soft);
+    background:var(--wheat-soft);
+    border-radius:10px;padding:10px 12px;margin-bottom:12px;
+  }
+  .backup-note.stale{background:var(--clay-soft);color:#7A2E15;}
+  .about{font-size:12.5px;color:var(--ink-soft);margin-top:16px;text-align:center;line-height:1.5;}
+
+  .preview{
+    background:#fff;border:1.5px solid var(--line);border-radius:12px;
+    padding:12px 14px;font-size:14px;margin-bottom:6px;
+  }
+  .preview ul{list-style:none;margin-top:6px;}
+  .preview li{padding:3px 0;border-bottom:1px dashed var(--paper-dim);display:flex;justify-content:space-between;gap:10px;}
+  .preview li span:last-child{font-family:var(--mono);color:var(--ink-soft);flex-shrink:0;}
+  .preview .more{color:var(--ink-soft);font-style:italic;border:0;}
+
+  /* ---------- Toast ---------- */
+  .toast{
+    position:fixed;z-index:50;
+    left:16px;right:16px;
+    bottom:calc(88px + var(--safe-b));
+    max-width:520px;margin:0 auto;
+    background:var(--forest-dark);color:var(--paper);
+    border-radius:12px;
+    padding:10px 10px 10px 14px;
+    display:flex;align-items:center;gap:10px;
+    box-shadow:0 8px 24px rgba(24,43,32,.3);
+    transform:translateY(20px);opacity:0;pointer-events:none;
+    transition:transform .2s ease, opacity .2s ease;
+    font-size:14.5px;
+  }
+  .toast.show{transform:none;opacity:1;pointer-events:auto;}
+  .toast .msg{flex:1;min-width:0;}
+  .toast .msg b{font-family:var(--mono);color:var(--wheat);}
+  .toast button{
+    flex-shrink:0;height:38px;padding:0 12px;border-radius:9px;
+    color:var(--wheat);font-weight:700;font-size:14px;
+    border:1px solid rgba(212,169,79,.5);
+  }
+
+  .storage-warning{
+    display:none;
+    background:var(--clay);color:#fff;font-size:14px;padding:10px 16px;text-align:center;
+  }
+  .storage-warning.show{display:block;}
+
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation:none !important;transition:none !important;}
+  }
+</style>
+</head>
+<body>
+
+<div class="storage-warning" id="storageWarning" role="alert">
+  Attention : ce navigateur ne permet pas d'enregistrer l'inventaire (navigation privée ?). Exporte ton inventaire avant de fermer la page.
+</div>
+
+<header class="top">
+  <div class="wrap top-inner">
+    <div>
+      <p class="eyebrow">CDC Mékinac</p>
+      <h1>Inventaire<br><em>Rentrée scolaire</em></h1>
+      <p class="meta" id="meta">&nbsp;</p>
+    </div>
+    <button class="icon-btn" id="menuBtn" type="button" aria-label="Menu : PDF, exporter, importer">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+  </div>
+</header>
+<div class="stitch-divider" aria-hidden="true"></div>
+
+<div class="toolbar">
+  <div class="wrap">
+    <div class="search" id="searchWrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <label class="sr-only" for="search">Chercher un article</label>
+      <input type="search" id="search" placeholder="Chercher un article…" autocomplete="off" enterkeyhint="search">
+      <button class="clear" type="button" id="searchClear" aria-label="Effacer la recherche">×</button>
+    </div>
+    <div class="controls">
+      <div class="mode" role="group" aria-label="Mode des boutons">
+        <button type="button" id="modeAdd" aria-pressed="true">＋ Ajouter</button>
+        <button type="button" id="modeRemove" aria-pressed="false">− Retirer</button>
+      </div>
+      <button class="filter-btn" type="button" id="filterBtn" aria-label="Filtres et tri">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
+        Filtres <span class="dot" id="filterCount"></span>
+      </button>
+    </div>
+    <div class="chips" id="chips" role="group" aria-label="Catégories"></div>
+    <div class="mode-banner" id="modeBanner">Mode retrait — les boutons enlèvent du stock</div>
+  </div>
+</div>
+
+<main class="wrap list" id="main">
+  <div class="active-filters" id="activeFilters"></div>
+  <div id="list"></div>
+</main>
+
+<button class="fab" type="button" id="addBtn">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+  Article
+</button>
+
+<div class="toast" id="toast" role="status" aria-live="polite">
+  <span class="msg" id="toastMsg"></span>
+  <button type="button" id="toastUndo">Annuler</button>
+</div>
+
+<!-- Fiche article (ajout / modification) -->
+<dialog id="itemDialog" aria-labelledby="itemDialogTitle">
+  <form class="sheet" id="itemForm" method="dialog" novalidate>
+    <div class="sheet-head">
+      <h2 id="itemDialogTitle">Nouvel article</h2>
+      <button class="close" type="button" data-close aria-label="Fermer">×</button>
+    </div>
+    <div class="field" id="fName">
+      <label for="iName">Nom de l'article</label>
+      <input id="iName" name="name" type="text" autocomplete="off" autocapitalize="sentences" maxlength="120" placeholder="ex. Crayons à mine HB" required>
+      <p class="warn" id="iNameWarn" hidden></p>
+      <p class="err" id="iNameErr" hidden>Le nom est obligatoire.</p>
+    </div>
+    <div class="field">
+      <label for="iCategory">Catégorie <span class="opt">(facultatif)</span></label>
+      <input id="iCategory" name="category" type="text" list="categoryList" autocomplete="off" autocapitalize="sentences" maxlength="60" placeholder="ex. Écriture">
+      <datalist id="categoryList"></datalist>
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label for="iQty">Quantité</label>
+        <input id="iQty" name="quantity" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder="0">
+      </div>
+      <div class="field">
+        <label for="iPrice">Prix de vente</label>
+        <div class="suffix">
+          <input id="iPrice" name="price" type="text" inputmode="decimal" autocomplete="off" placeholder="0,00">
+          <span>$</span>
+        </div>
+      </div>
+    </div>
+    <div class="field">
+      <label for="iTarget">Quantité visée <span class="opt">(facultatif)</span></label>
+      <input id="iTarget" name="target" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder="ex. 200">
+      <p class="hint">Affiche une barre de progression et permet de filtrer ce qui manque.</p>
+    </div>
+    <div class="field">
+      <label for="iNote">Note <span class="opt">(facultatif)</span></label>
+      <textarea id="iNote" name="note" maxlength="300" placeholder="ex. Format 40 pages, couleurs variées"></textarea>
+    </div>
+    <p class="err" id="iFormErr" hidden></p>
+    <button class="btn" type="submit" id="iSave">Enregistrer</button>
+    <button class="btn danger" type="button" id="iDelete" style="margin-top:10px" hidden>Supprimer l'article</button>
+  </form>
+</dialog>
+
+<!-- Ajuster la quantité manuellement -->
+<dialog id="qtyDialog" aria-labelledby="qtyDialogTitle">
+  <form class="sheet" id="qtyForm" method="dialog" novalidate>
+    <div class="sheet-head">
+      <h2 id="qtyDialogTitle">Quantité</h2>
+      <button class="close" type="button" data-close aria-label="Fermer">×</button>
+    </div>
+    <p class="lead" id="qtyLead"></p>
+    <div class="field">
+      <label class="sr-only" for="qInput">Nouvelle quantité</label>
+      <input id="qInput" class="qty-big" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off">
+      <p class="err" id="qErr" hidden>Entre un nombre entier de 0 ou plus.</p>
+    </div>
+    <div class="qty-quick">
+      <button type="button" data-delta="-10">−10</button>
+      <button type="button" data-delta="-1">−1</button>
+      <button type="button" data-delta="1">+1</button>
+      <button type="button" data-delta="10">+10</button>
+    </div>
+    <div class="btn-row">
+      <button class="btn secondary" type="button" data-close>Annuler</button>
+      <button class="btn" type="submit">Confirmer</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Filtres et tri -->
+<dialog id="filterDialog" aria-labelledby="filterDialogTitle">
+  <form class="sheet" method="dialog">
+    <div class="sheet-head">
+      <h2 id="filterDialogTitle">Filtres et tri</h2>
+      <button class="close" type="button" data-close aria-label="Fermer">×</button>
+    </div>
+    <div class="field">
+      <span class="label">Afficher</span>
+      <div class="radio-list" id="statusList"></div>
+    </div>
+    <div class="field">
+      <span class="label">Trier par</span>
+      <div class="radio-list" id="sortList"></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn secondary" type="button" id="filterReset">Réinitialiser</button>
+      <button class="btn" type="button" data-close>Voir les articles</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Menu -->
+<dialog id="menuDialog" aria-labelledby="menuDialogTitle">
+  <div class="sheet">
+    <div class="sheet-head">
+      <h2 id="menuDialogTitle">Menu</h2>
+      <button class="close" type="button" data-close aria-label="Fermer">×</button>
+    </div>
+    <p class="backup-note" id="backupNote"></p>
+    <div class="menu-list">
+      <button class="menu-item" type="button" id="mPdf">
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg></span>
+        <span><strong>Générer le PDF</strong><span class="d">Liste propre à imprimer ou envoyer</span></span>
+      </button>
+      <button class="menu-item" type="button" id="mExport">
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3M7 8l5-5 5 5"/><path d="M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/></svg></span>
+        <span><strong>Exporter une sauvegarde</strong><span class="d">Fichier .json complet, à réimporter plus tard</span></span>
+      </button>
+      <button class="menu-item" type="button" id="mExportCsv">
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 10h16M4 15h16M10 4v16"/></svg></span>
+        <span><strong>Exporter pour Excel</strong><span class="d">Fichier .csv (tableur)</span></span>
+      </button>
+      <button class="menu-item" type="button" id="mImport">
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/></svg></span>
+        <span><strong>Importer un fichier</strong><span class="d">Sauvegarde .json ou tableur .csv</span></span>
+      </button>
+      <div class="stitch" style="margin:6px 0"></div>
+      <button class="menu-item danger" type="button" id="mClear">
+        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></span>
+        <span><strong>Effacer tout l'inventaire</strong><span class="d">Exporte une sauvegarde avant</span></span>
+      </button>
+    </div>
+    <p class="about">Les données restent sur cet appareil, dans ce navigateur.<br>Aucune connexion internet n'est nécessaire.</p>
+    <input type="file" id="importFile" accept=".json,.csv,.txt,application/json,text/csv,text/plain" hidden>
+  </div>
+</dialog>
+
+<!-- Choix PDF -->
+<dialog id="pdfDialog" aria-labelledby="pdfDialogTitle">
+  <div class="sheet">
+    <div class="sheet-head">
+      <h2 id="pdfDialogTitle">Générer le PDF</h2>
+      <button class="close" type="button" data-close aria-label="Fermer">×</button>
+    </div>
+    <p class="lead">Des filtres ou une recherche sont actifs. Que veux-tu inclure ?</p>
+    <div class="menu-list">
+      <button class="menu-item" type="button" id="pdfAll"><span><strong>Tout l'inventaire</strong><span class="d" id="pdfAllD"></span></span></button>
+      <button class="menu-item" type="button" id="pdfShown"><span><strong>Seulement les articles affichés</strong><span class="d" id="pdfShownD"></span></span></button>
+    </div>
+  </div>
+</dialog>
+
+<!-- Fichier prêt -->
+<dialog id="fileDialog" aria-labelledby="fileDialogTitle">
+  <div class="sheet">
+    <div class="sheet-head">
+      <h2 id="fileDialogTitle">Fichier prêt</h2>
+      <button class="close" type="button" data-close aria-label="Fermer">×</button>
+    </div>
+    <p class="lead" id="fileLead"></p>
+    <div class="menu-list" id="fileActions"></div>
+  </div>
+</dialog>
+
+<!-- Confirmation d'import -->
+<dialog id="importDialog" aria-labelledby="importDialogTitle">
+  <div class="sheet">
+    <div class="sheet-head">
+      <h2 id="importDialogTitle">Importer</h2>
+      <button class="close" type="button" data-close aria-label="Fermer">×</button>
+    </div>
+    <p class="lead" id="importLead"></p>
+    <div class="preview" id="importPreview"></div>
+    <div class="menu-list" style="margin-top:12px">
+      <button class="menu-item" type="button" id="importMerge"><span><strong>Fusionner</strong><span class="d">Met à jour les articles du même nom et ajoute les nouveaux</span></span></button>
+      <button class="menu-item danger" type="button" id="importReplace"><span><strong>Remplacer tout</strong><span class="d">L'inventaire actuel sera effacé</span></span></button>
+    </div>
+  </div>
+</dialog>
+
+<!-- Confirmation générique -->
+<dialog id="confirmDialog" aria-labelledby="confirmTitle">
+  <div class="sheet">
+    <div class="sheet-head">
+      <h2 id="confirmTitle"></h2>
+    </div>
+    <p class="lead" id="confirmText"></p>
+    <div class="btn-row">
+      <button class="btn secondary" type="button" id="confirmNo">Annuler</button>
+      <button class="btn danger-solid" type="button" id="confirmYes">Confirmer</button>
+    </div>
+  </div>
+</dialog>
+
+<script src="vendor/jspdf.umd.min.js" defer></script>
+<script src="vendor/jspdf.plugin.autotable.min.js" defer></script>
+<script src="app.js" defer></script>
+</body>
+</html>
